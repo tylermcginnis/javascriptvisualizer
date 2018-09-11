@@ -1,0 +1,20 @@
+{
+  "name": "noname",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "codemirror": "^5.40.0",
+    "esprima": "^4.0.1",
+    "react": "^16.5.0",
+    "react-codemirror2": "^5.1.0",
+    "react-dom": "^16.5.0",
+    "react-scripts": "1.1.5",
+    "styled-components": "^3.4.6"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
