@@ -6,4 +6,5 @@ body {
 
 .CodeMirror {
   font-size: 24px;
+  height: 500px !important;
 }

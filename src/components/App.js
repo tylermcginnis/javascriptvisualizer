@@ -117,7 +117,7 @@ class App extends Component {
           options={{
             mode: 'javascript',
             theme: 'material',
-            lineNumbers: true
+            lineNumbers: true,
           }}
           onBeforeChange={(editor, data, code) => {
             this.setState({

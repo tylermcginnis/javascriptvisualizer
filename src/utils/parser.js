@@ -1,7 +1,7 @@
 import * as esprima from 'esprima'
 import deepfilter from 'deep-filter'
 
-function parseObjectExpression (properties) {
+function objectExpressionToString (properties) {
   if (properties.length === 0) {
     return '{}'
   }
@@ -16,9 +16,9 @@ function parseObjectExpression (properties) {
     if (prop.value.type === 'FunctionExpression') {
       str += 'fn()'
     } else if (prop.value.type === 'ArrayExpression') {
-      str += parseArrayExpression(prop.value.elements)
+      str += arrayExpressionToString(prop.value.elements)
     } else if (prop.value.type === 'ObjectExpression') {
-      str += parseObjectExpression(prop.value.properties)
+      str += objectExpressionToString(prop.value.properties)
     } else {
       str += prop.value.value
     }
@@ -29,7 +29,7 @@ function parseObjectExpression (properties) {
   return str + " }"
 }
 
-function parseArrayExpression (elements) {
+function arrayExpressionToString (elements) {
   if (elements.length === 0) {
     return '[]'
   }
@@ -42,9 +42,9 @@ function parseArrayExpression (elements) {
     if (ele.type === 'FunctionExpression') {
       str += 'fn()'
     } else if (ele.type === 'ArrayExpression') {
-      str += parseArrayExpression(ele.elements)
+      str += arrayExpressionToString(ele.elements)
     } else if (ele.type === 'ObjectExpression') {
-      str += parseObjectExpression(ele.properties)
+      str += objectExpressionToString(ele.properties)
     } else {
       str += ele.value
     }
@@ -57,7 +57,7 @@ function parseArrayExpression (elements) {
 
 function parseVariableDeclaration (declaration) {
   if (declaration.declarations.length !== 1) {
-    console.log('Not handling this case!', declaration.declarations)
+    console.log('Not handling this case: ', declaration.declarations)
   }
 
   const { id, init, loc } = declaration.declarations[0]
@@ -77,9 +77,9 @@ function parseVariableDeclaration (declaration) {
   if (init.type === 'Literal') {
     value = init.value
   } else if (init.type === 'ObjectExpression') {
-    value = parseObjectExpression(init.properties)
+    value = objectExpressionToString(init.properties)
   } else if (init.type === 'ArrayExpression') {
-    value = parseArrayExpression(init.elements)
+    value = arrayExpressionToString(init.elements)
   }
 
   return {
@@ -165,7 +165,6 @@ function removeAllGlobals (declarations) {
   // instead of removing, deepfilter sets all 'kind === global' to empty objects.
   // this gets rid of those
   return deepfilter(removedGlobals, (value, prop, subject) => {
-
     if (typeof value !== 'object') {
       return true
     }
@@ -186,9 +185,11 @@ function hoistGlobals (declarations) {
 
 function parseAST (ast) {
   let defaultValues = [
+    {identifier: 'window', type: 'object', value: 'global object'},
     {identifier: 'this', type: 'object', value: 'window'},
-    {identifier: 'window', type: 'object', value: 'global'},
   ]
+
+
 
   const parsedDeclarations = ast.body.map((declaration) =>
     parseDeclaration(declaration))
@@ -207,8 +208,9 @@ export function getParsedAST (code) {
   try {
     let placeholder = esprima.parse(code)
     ast = placeholder
+    eval(code)
   } catch(e) {
-    console.log('Error in getParsedAST: ', e)
+    console.log('Code not valid: ', e)
   }
 
   return parseAST(ast)
