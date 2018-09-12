@@ -1,4 +1,59 @@
 import * as esprima from 'esprima'
+import deepfilter from 'deep-filter'
+
+function parseObjectExpression (properties) {
+  if (properties.length === 0) {
+    return '{}'
+  }
+
+  let str = '{ '
+
+  for (let i = 0; i < properties.length; i++) {
+    const prop = properties[i]
+
+    str += prop.key.name + ': '
+
+    if (prop.value.type === 'FunctionExpression') {
+      str += 'fn()'
+    } else if (prop.value.type === 'ArrayExpression') {
+      str += parseArrayExpression(prop.value.elements)
+    } else if (prop.value.type === 'ObjectExpression') {
+      str += parseObjectExpression(prop.value.properties)
+    } else {
+      str += prop.value.value
+    }
+
+    str += (i === properties.length - 1 ? '' : ', ')
+  }
+
+  return str + " }"
+}
+
+function parseArrayExpression (elements) {
+  if (elements.length === 0) {
+    return '[]'
+  }
+
+  let str = '['
+
+  for (let i = 0; i < elements.length; i++) {
+    const ele = elements[i]
+
+    if (ele.type === 'FunctionExpression') {
+      str += 'fn()'
+    } else if (ele.type === 'ArrayExpression') {
+      str += parseArrayExpression(ele.elements)
+    } else if (ele.type === 'ObjectExpression') {
+      str += parseObjectExpression(ele.properties)
+    } else {
+      str += ele.value
+    }
+
+    str += (i === elements.length - 1 ? '' : ', ')
+  }
+
+  return str + ']'
+}
 
 function parseVariableDeclaration (declaration) {
   if (declaration.declarations.length !== 1) {
@@ -11,10 +66,26 @@ function parseVariableDeclaration (declaration) {
     return null
   }
 
+  if (init.type === 'FunctionExpression') {
+    return parseFunctionDeclaration({
+      ...init,
+      id,
+    })
+  }
+
+  let value
+  if (init.type === 'Literal') {
+    value = init.value
+  } else if (init.type === 'ObjectExpression') {
+    value = parseObjectExpression(init.properties)
+  } else if (init.type === 'ArrayExpression') {
+    value = parseArrayExpression(init.elements)
+  }
+
   return {
     identifier: id.name,
     position: loc,
-    value: init.value,
+    value: value,
     type: typeof init.value,
     kind: declaration.kind
   }
@@ -23,6 +94,7 @@ function parseVariableDeclaration (declaration) {
 function parseFunctionDeclaration ({ body, id, loc, params }) {
   // todo. arguments
   // todo 'this'
+
   if (!id || !body.body) {
     return null
   }
@@ -40,7 +112,7 @@ function parseFunctionDeclaration ({ body, id, loc, params }) {
 
 function parseExpressionStatement (expression) {
   const exp = expression.expression
-  if (exp && exp.operator === '=') {
+  if (exp && exp.type === "AssignmentExpression") {
     return {
       identifier: exp.left.name,
       value: exp.right.value,
@@ -65,17 +137,64 @@ function parseDeclaration (declaration) {
   }
 }
 
+function getAllGlobals (declarations) {
+  let results = []
+
+  for (let i = 0; i < declarations.length; i++) {
+    if (declarations[i].variables) {
+      results = results.concat(getAllGlobals(declarations[i].variables))
+    } else {
+      if (declarations[i].kind === 'global') {
+        results = results.concat(declarations[i])
+      }
+    }
+  }
+
+  return results
+}
+
+function isEmptyObject (value) {
+  return Object.keys(value).length === 0 && value.constructor === Object
+}
+
+function removeAllGlobals (declarations) {
+  const removedGlobals = deepfilter(declarations, (value, prop, subject) => {
+    return subject.kind !== 'global'
+  })
+
+  // instead of removing, deepfilter sets all 'kind === global' to empty objects.
+  // this gets rid of those
+  return deepfilter(removedGlobals, (value, prop, subject) => {
+
+    if (typeof value !== 'object') {
+      return true
+    }
+
+    return !isEmptyObject(value)
+  })
+}
+
+function hoistGlobals (declarations) {
+  const allGlobals = getAllGlobals(declarations)
+  const withoutGlobals = removeAllGlobals(declarations)
+
+  return [
+    ...allGlobals,
+    ...withoutGlobals,
+  ]
+}
+
 function parseAST (ast) {
   let defaultValues = [
     {identifier: 'this', type: 'object', value: 'window'},
     {identifier: 'window', type: 'object', value: 'global'},
   ]
 
-  const parsedAST = ast.body.map((declaration) =>
-    parseDeclaration(declaration)
-  ).filter(Boolean)
+  const parsedDeclarations = ast.body.map((declaration) =>
+    parseDeclaration(declaration))
+  .filter(Boolean)
 
-  return defaultValues.concat(parsedAST).filter(Boolean)
+  return defaultValues.concat(hoistGlobals(parsedDeclarations)).filter(Boolean)
 }
 
 let ast = {
@@ -88,9 +207,8 @@ export function getParsedAST (code) {
   try {
     let placeholder = esprima.parse(code)
     ast = placeholder
-    console.log('AST', ast)
   } catch(e) {
-    console.log('ERRROR', e)
+    console.log('Error in getParsedAST: ', e)
   }
 
   return parseAST(ast)
