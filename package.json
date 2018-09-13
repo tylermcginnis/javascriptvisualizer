@@ -5,7 +5,7 @@
   "dependencies": {
     "codemirror": "^5.40.0",
     "deep-filter": "^1.0.2",
-    "esprima": "^4.0.1",
+    "js-interpreter": "^1.4.6",
     "react": "^16.5.0",
     "react-codemirror2": "^5.1.0",
     "react-dom": "^16.5.0",

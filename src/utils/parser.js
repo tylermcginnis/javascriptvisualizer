@@ -1,5 +1,5 @@
-import * as esprima from 'esprima'
 import deepfilter from 'deep-filter'
+import Interpreter from 'js-interpreter';
 
 function objectExpressionToString (properties) {
   if (properties.length === 0) {
@@ -183,13 +183,11 @@ function hoistGlobals (declarations) {
   ]
 }
 
-function parseAST (ast) {
+export function parseAST (ast) {
   let defaultValues = [
     {identifier: 'window', type: 'object', value: 'global object'},
     {identifier: 'this', type: 'object', value: 'window'},
   ]
-
-
 
   const parsedDeclarations = ast.body.map((declaration) =>
     parseDeclaration(declaration))
@@ -204,14 +202,14 @@ let ast = {
   type: 'Program'
 }
 
-export function getParsedAST (code) {
+let MyInterpreter
+export function getInterpreter(code) {
   try {
-    let placeholder = esprima.parse(code)
-    ast = placeholder
-    eval(code)
+    let placeholder = new Interpreter(code)
+    MyInterpreter = placeholder
   } catch(e) {
-    console.log('Code not valid: ', e)
+    // Thrown if code is not valid
   }
 
-  return parseAST(ast)
+  return MyInterpreter
 }

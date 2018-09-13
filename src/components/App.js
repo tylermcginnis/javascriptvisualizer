@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import { getParsedAST } from '../utils/parser'
+import { getInterpreter, parseAST } from '../utils/parser'
 import { Controlled as CodeMirror } from 'react-codemirror2'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/material.css'
-import 'codemirror/theme/neat.css'
 import 'codemirror/mode/javascript/javascript.js'
+import 'codemirror/addon/selection/mark-selection.js'
 
 function getRandomItem (arr) {
   return arr[~~(arr.length * Math.random())];
@@ -94,10 +94,31 @@ class ExecutionContext extends Component {
   }
 }
 
+function charLocationToLineAndCharLocation (code, charIndex) {
+  let line = 0;
+  let ch = 0
+
+  for (let i = 0; i < code.length + 1; i++) {
+    if (i === charIndex) {
+      return {
+        line,
+        ch
+      }
+    }
+
+    if (code[i] === '\n') {
+      line++
+    }
+
+    ch++
+  }
+}
+
 class App extends Component {
   state = {
     code: '',
   }
+  myInterpreter = getInterpreter('')
   chosenColors = []
   getColor = () => {
     const availableColors = Object.keys(flatColors)
@@ -109,10 +130,41 @@ class App extends Component {
 
     return flatColors[randomColor]
   }
+  markers = []
+  handleStep = () => {
+    if (this.myInterpreter.stateStack.length) {
+      var node = this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].node;
+      var start = node.start;
+      var end = node.end;
+    } else {
+      var start = 0;
+      var end = 0;
+    }
+
+    this.markers.forEach((m) => m.clear())
+
+    this.markers.push(
+      this.cm.editor.doc.markText(
+        charLocationToLineAndCharLocation(this.state.code, start),
+        charLocationToLineAndCharLocation(this.state.code, end),
+        {className: "editor-highlighted-background"}
+      )
+    )
+
+    try {
+      var ok = this.myInterpreter.step();
+    } finally {
+      if (!ok) {
+        console.log('uhhhh')
+      }
+    }
+  }
   render() {
     return (
       <div>
+        <button onClick={this.handleStep}>STEP</button>
         <CodeMirror
+          ref={(cm) => this.cm = cm}
           value={this.state.code}
           options={{
             mode: 'javascript',
@@ -120,15 +172,14 @@ class App extends Component {
             lineNumbers: true,
           }}
           onBeforeChange={(editor, data, code) => {
-            this.setState({
-              code,
-              submit: false
-            })
+            this.setState({code})
+
+            this.myInterpreter = getInterpreter(code)
           }}
         />
         <ExecutionContext
           context={'Global'}
-          variables={getParsedAST(this.state.code)}
+          variables={this.myInterpreter ? parseAST(this.myInterpreter.ast) : []}
           getColor={this.getColor}
         />
       </div>

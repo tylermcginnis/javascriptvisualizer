@@ -8,3 +8,7 @@ body {
   font-size: 24px;
   height: 500px !important;
 }
+
+.editor-highlighted-background {
+  background-color: #44535a;
+}
