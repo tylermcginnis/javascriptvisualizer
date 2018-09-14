@@ -183,6 +183,32 @@ function hoistGlobals (declarations) {
   ]
 }
 
+function interpreterShims (interpreter, scope) {
+  const alertWrapper = (text = '') => alert(text)
+
+  interpreter.setProperty(
+    scope,
+    'alert',
+    interpreter.createNativeFunction(alertWrapper)
+  )
+
+  const obj = interpreter.createObject(interpreter.OBJECT)
+
+  interpreter.setProperty(
+    scope,
+    'console',
+    obj
+  )
+
+  const consoleWrapper = (text = '') => interpreter.createPrimitive(console.log(text.toString()))
+
+  interpreter.setProperty(
+    obj,
+    'log',
+    interpreter.createNativeFunction(consoleWrapper)
+  )
+}
+
 export function parseAST (ast) {
   let defaultValues = [
     {identifier: 'window', type: 'object', value: 'global object'},
@@ -196,16 +222,10 @@ export function parseAST (ast) {
   return defaultValues.concat(hoistGlobals(parsedDeclarations)).filter(Boolean)
 }
 
-let ast = {
-  body: [],
-  sourceType: 'script',
-  type: 'Program'
-}
-
 let MyInterpreter
 export function getInterpreter(code) {
   try {
-    let placeholder = new Interpreter(code)
+    let placeholder = new Interpreter(code, interpreterShims)
     MyInterpreter = placeholder
   } catch(e) {
     // Thrown if code is not valid

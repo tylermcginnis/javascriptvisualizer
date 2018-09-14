@@ -94,7 +94,20 @@ class ExecutionContext extends Component {
   }
 }
 
-function charLocationToLineAndCharLocation (code, charIndex) {
+function getTotalLineLengths (lengths, lineNumber) {
+  let count = 0
+
+  for (let i = 0; i < lineNumber; i++) {
+    // this one weird trick solves off by one errors. (+ 1)
+    count += lengths[i] + 1
+  }
+
+  return count
+}
+
+function formatCharLoc (code, charIndex) {
+  const lineLengths = code.split('\n').map((line) => line.length)
+
   let line = 0;
   let ch = 0
 
@@ -102,7 +115,7 @@ function charLocationToLineAndCharLocation (code, charIndex) {
     if (i === charIndex) {
       return {
         line,
-        ch
+        ch: ch - getTotalLineLengths(lineLengths, line),
       }
     }
 
@@ -116,7 +129,7 @@ function charLocationToLineAndCharLocation (code, charIndex) {
 
 class App extends Component {
   state = {
-    code: '',
+    code: ``,
   }
   myInterpreter = getInterpreter('')
   chosenColors = []
@@ -132,30 +145,31 @@ class App extends Component {
   }
   markers = []
   handleStep = () => {
-    if (this.myInterpreter.stateStack.length) {
-      var node = this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].node;
-      var start = node.start;
-      var end = node.end;
-    } else {
-      var start = 0;
-      var end = 0;
-    }
+    const { stateStack } = this.myInterpreter
 
-    this.markers.forEach((m) => m.clear())
+    if (stateStack.length) {
+      const node = stateStack[stateStack.length - 1].node
+      const start = node.start
+      const end = node.end
 
-    this.markers.push(
-      this.cm.editor.doc.markText(
-        charLocationToLineAndCharLocation(this.state.code, start),
-        charLocationToLineAndCharLocation(this.state.code, end),
-        {className: "editor-highlighted-background"}
+      this.markers.forEach((m) => m.clear())
+
+      this.markers.push(
+        this.cm.editor.doc.markText(
+          formatCharLoc(this.state.code, start),
+          formatCharLoc(this.state.code, end),
+          {className: "editor-highlighted-background"}
+        )
       )
-    )
+    }
 
     try {
       var ok = this.myInterpreter.step();
+      console.log('VALUE', this.myInterpreter.value)
     } finally {
       if (!ok) {
-        console.log('uhhhh')
+        // No more code to step through
+        this.markers.forEach((m) => m.clear())
       }
     }
   }
@@ -173,7 +187,6 @@ class App extends Component {
           }}
           onBeforeChange={(editor, data, code) => {
             this.setState({code})
-
             this.myInterpreter = getInterpreter(code)
           }}
         />
