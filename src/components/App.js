@@ -144,6 +144,7 @@ class App extends Component {
     return flatColors[randomColor]
   }
   markers = []
+  clearMarkers = () => this.markers.forEach((m) => m.clear())
   handleStep = () => {
     const { stateStack } = this.myInterpreter
 
@@ -152,7 +153,7 @@ class App extends Component {
       const start = node.start
       const end = node.end
 
-      this.markers.forEach((m) => m.clear())
+      this.clearMarkers()
 
       this.markers.push(
         this.cm.editor.doc.markText(
@@ -163,9 +164,16 @@ class App extends Component {
       )
     }
 
+    /*
+      this.myInterpreter.getScope()
+      this.myInterpreter.getValueFromScope('varName')
+
+    */
+
     try {
       var ok = this.myInterpreter.step();
-      console.log('VALUE', this.myInterpreter.value)
+      console.log('SCOPE', this.myInterpreter.getScope())
+      console.log('Current Scope (I think)', this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].thisExpression)
     } finally {
       if (!ok) {
         // No more code to step through
@@ -173,10 +181,23 @@ class App extends Component {
       }
     }
   }
+  handleSlowRun = () => {
+    // make step speed an option
+    const interval = window.setInterval(() => {
+      const state = this.myInterpreter.stateStack[0]
+      if (state.done === true) {
+        this.clearMarkers()
+        return window.clearInterval(interval)
+      }
+
+      this.handleStep()
+    }, 500)
+  }
   render() {
     return (
       <div>
         <button onClick={this.handleStep}>STEP</button>
+        <button onClick={this.handleSlowRun}>SLOW RUN</button>
         <CodeMirror
           ref={(cm) => this.cm = cm}
           value={this.state.code}
