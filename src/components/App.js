@@ -70,7 +70,7 @@ class ExecutionContext extends Component {
 
     return (
       <ExecutionContextStyles background={this.color}>
-        <h1>{context}'s Execution Context</h1>
+        <h1>{context}'s {context === 'Global' ? ' Scope' : ' Execution Context'}</h1>
         <VariableEnvironment>
           {variables.map(({ identifier, type, value, variables }, index) => {
             return (
@@ -127,12 +127,87 @@ function formatCharLoc (code, charIndex) {
   }
 }
 
+const globalsToIgnore = {
+ "Infinity": true,
+ "NaN": true,
+ "undefined": true,
+ "window": true,
+ "self": true,
+ "Function": true,
+ "Object": true,
+ "Array": true,
+ "Number": true,
+ "String": true,
+ "Boolean": true,
+ "Date": true,
+ "Math": true,
+ "RegExp": true,
+ "JSON": true,
+ "Error": true,
+ "EvalError": true,
+ "RangeError": true,
+ "ReferenceError": true,
+ "SyntaxError": true,
+ "TypeError": true,
+ "URIError": true,
+ "isNaN": true,
+ "isFinite": true,
+ "parseFloat": true,
+ "parseInt": true,
+ "eval": true,
+ "escape": true,
+ "unescape": true,
+ "decodeURI": true,
+ "decodeURIComponent": true,
+ "encodeURI": true,
+ "encodeURIComponent": true,
+ "alert": true,
+ "console": true,
+}
+
+function filterGlobals (properties) {
+  return Object.keys(properties).reduce((result, prop) => {
+    if (globalsToIgnore[prop] !== true) {
+      result[prop] = properties[prop]
+    }
+    return result
+  }, {})
+}
+
+function createNewExecutionContext (previousHighlight, currentHighlight) {
+  return previousHighlight.node.type === 'CallExpression' && currentHighlight.node.type === 'BlockStatement'
+}
+
+function endExecutionContext (currentHighlight) {
+  if (currentHighlight.node.type === 'CallExpression') {
+    if (currentHighlight.doneCallee_ === true && currentHighlight.doneExec_ === true) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function getCalleeName (callee) {
+  if (callee.name) {
+    return callee.name
+  } else if (callee.property) {
+    return callee.property.name
+  } else {
+    return 'Not handling this case 🙈'
+  }
+}
+
 class App extends Component {
   state = {
     code: ``,
+    highlight: {}
   }
   myInterpreter = getInterpreter('')
   chosenColors = []
+  markers = []
+  previousHighlight = { node: { type: null}}
+  clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {
     const availableColors = Object.keys(flatColors)
       .filter((color) => !this.chosenColors.includes(color))
@@ -143,8 +218,6 @@ class App extends Component {
 
     return flatColors[randomColor]
   }
-  markers = []
-  clearMarkers = () => this.markers.forEach((m) => m.clear())
   handleStep = () => {
     const { stateStack } = this.myInterpreter
 
@@ -168,12 +241,40 @@ class App extends Component {
       this.myInterpreter.getScope()
       this.myInterpreter.getValueFromScope('varName')
 
+      this.myInterpreter.getScope() === this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].scope
+
+      Get this -> stack[stack.length - 1].thisExpression.properties
+
+      All methods - Object.getPrototypeOf(this.myInterpreter)
     */
 
+    let ok
     try {
-      var ok = this.myInterpreter.step();
-      console.log('SCOPE', this.myInterpreter.getScope())
-      console.log('Current Scope (I think)', this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].thisExpression)
+      const stack = this.myInterpreter.stateStack
+      const highlight = stack[stack.length - 1]
+      this.setState({highlight: highlight.node})
+
+      if (createNewExecutionContext(this.previousHighlight, highlight)) {
+        console.log('New Context With ', getCalleeName(this.previousHighlight.node.callee))
+      }
+
+      if (endExecutionContext(highlight)) {
+        console.log('End', getCalleeName(highlight.node.callee), 'Context')
+      }
+
+      this.previousHighlight = highlight
+
+      // console.log('*******')
+      // console.log('\n')
+      // console.log('INTERPRETER', filterGlobals(this.myInterpreter))
+      // console.log('----------------')
+      // console.log('SCOPE', scope.properties)
+      // console.log('----------------')
+      // stack.forEach((s) => console.log(s.node.type))
+      // console.log(state)
+      // console.log('\n')
+      // console.log('*******')
+      ok = this.myInterpreter.step()
     } finally {
       if (!ok) {
         // No more code to step through
@@ -185,6 +286,7 @@ class App extends Component {
     // make step speed an option
     const interval = window.setInterval(() => {
       const state = this.myInterpreter.stateStack[0]
+
       if (state.done === true) {
         this.clearMarkers()
         return window.clearInterval(interval)
@@ -211,6 +313,7 @@ class App extends Component {
             this.myInterpreter = getInterpreter(code)
           }}
         />
+        <pre>{JSON.stringify(this.state.highlight, null, 2) }</pre>
         <ExecutionContext
           context={'Global'}
           variables={this.myInterpreter ? parseAST(this.myInterpreter.ast) : []}

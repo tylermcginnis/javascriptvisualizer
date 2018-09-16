@@ -37,14 +37,52 @@ var user = {
   name: 'Tyler',
   age: 27,
   greet: function () {
-    alert("Hello, my name is ${this.name}")
+    var inner = 'hello'
+    alert('Greeeeeet')
   },
   mother: {
     name: 'Stacey',
     greet: function () {
-      alert("Hello, my name is ${this.name}")
+      var another = 'okokok'
+     console.log('Greeeeeting')
     }
   }
 }
 
 user.greet()
+user.mother.greet()
+
+
+var name = 'Tyler'
+
+function doThing () {
+  var age = 28
+  return age
+}
+
+doThing()
+
+
+
+
+
+function doThing () {
+  var thing = 'thinggggg'
+  return thing
+}
+
+function doMe () {
+  var me = 'meeee'
+  return me
+}
+
+var doYou = function () {
+  var you = 'youuuu'
+  return you;
+}
+
+doThing()
+var name = 'Tyler'
+doMe()
+var age = 28
+doYou()

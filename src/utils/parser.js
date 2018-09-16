@@ -184,12 +184,10 @@ function hoistGlobals (declarations) {
 }
 
 function interpreterShims (interpreter, scope) {
-  const alertWrapper = (text = '') => alert(text)
-
   interpreter.setProperty(
     scope,
     'alert',
-    interpreter.createNativeFunction(alertWrapper)
+    interpreter.createNativeFunction((text = '') => alert(text))
   )
 
   const obj = interpreter.createObject(interpreter.OBJECT)
@@ -200,12 +198,12 @@ function interpreterShims (interpreter, scope) {
     obj
   )
 
-  const consoleWrapper = (text = '') => interpreter.createPrimitive(console.log(text.toString()))
-
   interpreter.setProperty(
     obj,
     'log',
-    interpreter.createNativeFunction(consoleWrapper)
+    interpreter.createNativeFunction(
+      (text = '') => interpreter.createPrimitive(console.log(text.toString()))
+    )
   )
 }
 
