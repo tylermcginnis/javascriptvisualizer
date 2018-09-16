@@ -47,28 +47,30 @@ const Value = styled.span`
 class ExecutionContext extends Component {
   color = this.color || this.props.getColor()
   render() {
-    const { context, variables, getColor } = this.props
+    const { context, getColor, scopes, remainingStack } = this.props
+    const variables = scopes[context]
 
     return (
       <ExecutionContextStyles background={this.color}>
         <h1>{context}'s {context === 'Global' ? ' Scope' : ' Execution Context'}</h1>
         <VariableEnvironment>
-          {variables.map(({ identifier, type, value, variables }, index) => {
+          {Object.keys(variables).map((identifier, index) => {
             return (
               <span key={index}>
                 <Variable background={colors.darkBlue}>
-                  <Identifier color={colors.pink}>{identifier}</Identifier>: <Value color={colors.white}>{value}</Value>
+                  <Identifier color={colors.pink}>{identifier}</Identifier>: <Value color={colors.white}>{variables[identifier]}</Value>
                 </Variable>
-                {type === 'function' && (
-                  <ExecutionContext
-                    context={identifier}
-                    variables={variables}
-                    getColor={getColor}
-                  />
-                )}
               </span>
             )
           })}
+          {remainingStack.length === 0
+            ? null
+            : <ExecutionContext
+                context={remainingStack[0].name}
+                scopes={scopes}
+                remainingStack={remainingStack.slice(1)}
+                getColor={this.props.getColor}
+              />}
         </VariableEnvironment>
       </ExecutionContextStyles>
     )

@@ -185,11 +185,11 @@ class App extends Component {
       if (this.state.stack.length === 0) {
         this.setState({
           stack: [{
-            name: 'Program',
+            name: 'Global',
             closure: false
           }],
           scopes: {
-            'Program': {
+            'Global': {
               'window': 'global object',
               'this': 'window',
             }
@@ -200,12 +200,16 @@ class App extends Component {
       if (createNewExecutionContext(this.previousHighlight, highlight)) {
         const name = getCalleeName(this.previousHighlight.node.callee)
 
-        this.setState(({ stack }) => {
+        this.setState(({ stack, scopes }) => {
           return {
             stack: stack.concat([{
               name,
               closure: false,
-            }])
+            }]),
+            scopes: {
+              ...scopes,
+              [name]: {}
+            }
           }
         })
       }
@@ -214,8 +218,10 @@ class App extends Component {
         // todo. handle closures
         const name = getCalleeName(highlight.node.callee)
 
+        if (name === 'Global') return
+
         this.setState(({ stack }) => ({
-          stack: stack.filter((s) => s.name === name)
+          stack: stack.filter((s) => s.name !== name),
         }))
       }
 
@@ -254,13 +260,15 @@ class App extends Component {
     }, 500)
   }
   render() {
+    const { code, highlight, stack, scopes } = this.state
+
     return (
       <div>
         <button onClick={this.handleStep}>STEP</button>
         <button onClick={this.handleSlowRun}>SLOW RUN</button>
         <CodeMirror
           ref={(cm) => this.cm = cm}
-          value={this.state.code}
+          value={code}
           options={{
             mode: 'javascript',
             theme: 'material',
@@ -271,14 +279,15 @@ class App extends Component {
             this.myInterpreter = getInterpreter(code)
           }}
         />
-        <pre>{JSON.stringify(this.state.highlight, null, 2) }</pre>
-        <ExecutionContext
-          context={'Global'}
-          scopes={this.state.scopes}
-          stack={this.state.stack}
-          variables={this.myInterpreter ? parseAST(this.myInterpreter.ast) : []}
-          getColor={this.getColor}
-        />
+        {/*<pre>{JSON.stringify(highlight, null, 2) }</pre>*/}
+        {stack.length === 0
+          ? null
+          : <ExecutionContext
+              context={stack[0].name}
+              scopes={scopes}
+              remainingStack={stack.slice(1)}
+              getColor={this.getColor}
+            />}
       </div>
     )
   }
