@@ -100,6 +100,10 @@ export function formatValue (type, init) {
     return objectExpressionToString(init.properties)
   } else if (type === 'Arguments') {
     return argumentsToString(init)
+  } else if (type === 'thisExpression') {
+    return init.properties.EvalError && init.properties.NaN
+      ? 'window'
+      : argumentsToString(init.properties, false, false)
   } else {
     return init.value
   }

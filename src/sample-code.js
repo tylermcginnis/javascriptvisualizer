@@ -191,4 +191,6 @@ function doThing (arg) {
   return name + ' ' + arg
 }
 
-doThing(name)
+doThing(name, function () {
+  console.log('woo')
+}, [true, 'hey', function anotehr(){}, [1,2,3, true, {name: 'cool'}]])

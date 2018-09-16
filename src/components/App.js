@@ -20,13 +20,13 @@ import ExecutionContext from './ExecutionContext'
 /*
   Todos
     Update (UI) code as it executes
-    this
     closures
     handleRun speed from UI
     Step through code options
     Highlight errors
     Don't crash on errors in code
     Creation phase vs execution phase
+    get example code with two greets working
 */
 
 
@@ -152,7 +152,8 @@ class App extends Component {
         scopes: {
           ...scopes,
           [name]: {
-            arguments: formatValue('Arguments', scope.properties.arguments.properties)
+            arguments: formatValue('Arguments', scope.properties.arguments.properties),
+            this: formatValue('thisExpression', thisExpression)
           }
         }
       }
@@ -203,14 +204,13 @@ class App extends Component {
       getScopeName(highlightStack)
     )
 
-    // console.log('\n')
-    // console.log('*******')
-    // console.log('SCOPE', highlighted.properties)
-    // console.log('----------------')
-    // highlightStack.forEach((s) => console.log(s.node.type))
-    // console.log(highlighted)
-    // console.log('*******')
-    // console.log('\n')
+    console.log('\n')
+    console.log('*******')
+    console.log('SCOPE', this.myInterpreter.getScope().properties)
+    highlightStack.forEach((s) => console.log(s.node.type))
+    console.log(highlighted)
+    console.log('*******')
+    console.log('\n')
 
     this.previousHighlight = highlighted
 
@@ -241,6 +241,12 @@ class App extends Component {
           onBeforeChange={(editor, data, code) => {
             this.setState({code})
             this.myInterpreter = getInterpreter(code)
+          }}
+          onFocus={() => {
+            this.setState({
+              scopes: {},
+              stack: []
+            })
           }}
         />
         {/*<pre>{JSON.stringify(highlighted, null, 2) }</pre>*/}
