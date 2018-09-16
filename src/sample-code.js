@@ -9,11 +9,16 @@ function topLevelFn () {
     var notGlobal = 'This is in nestedFn'
     nestedVarWithoutDeclaration = 'This should be global too'
   }
+
+  nestedFn()
 }
 
 var fnExpression = function () {
   var varInFnExpression = 'This is in a function expression'
 }
+
+fnExpression()
+topLevelFn()
 
 const user = {
   name: 'Tyler',
@@ -163,3 +168,15 @@ function doThing () {
 }
 
 doThing
+
+
+function add (arr) {
+  var count = 0
+  for (var i = 0; i < arr.length; i++) {
+    count += arr[i]
+  }
+
+  return count
+}
+
+add([1,2,3])

@@ -1,4 +1,3 @@
-import deepfilter from 'deep-filter'
 import Interpreter from 'js-interpreter';
 
 function objectExpressionToString (properties) {
@@ -64,6 +63,55 @@ export function formatValue (type, init) {
     return objectExpressionToString(init.properties)
   } else {
     return init.value
+  }
+}
+
+export function createNewExecutionContext (previousHighlight, currentHighlight) {
+  return previousHighlight.node.type === 'CallExpression' && currentHighlight.node.type === 'BlockStatement'
+}
+
+export function endExecutionContext (currentHighlight) {
+  if (currentHighlight.node.type === 'CallExpression') {
+    if (currentHighlight.doneCallee_ === true && currentHighlight.doneExec_ === true) {
+      return true
+    }
+  }
+
+  return false
+}
+
+export function getCalleeName (callee) {
+  if (callee.name) {
+    return callee.name
+  } else if (callee.property) {
+    return callee.property.name
+  } else {
+    return 'Not handling this case 🙈'
+  }
+}
+
+export function getScopeName (stack) {
+  for (let i = stack.length - 1; i >= 0; i--) {
+    if (stack[i].node.callee) {
+      return getCalleeName(stack[i].node.callee)
+    }
+  }
+
+  return 'Global' // needed?
+}
+
+export function getFirstStepState () {
+  return {
+    stack: [{
+      name: 'Global',
+      closure: false
+    }],
+    scopes: {
+      'Global': {
+        'window': 'global object',
+        'this': 'window',
+      }
+    }
   }
 }
 

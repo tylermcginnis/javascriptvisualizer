@@ -1,5 +1,15 @@
 import React, { Component } from 'react'
-import { getInterpreter, formatValue } from '../utils/parser'
+import {
+  getInterpreter,
+  formatValue,
+  createNewExecutionContext,
+  endExecutionContext,
+  getCalleeName,
+  getScopeName,
+  getFirstStepState
+} from '../utils/parser'
+import { formatCharLoc } from '../utils/editor'
+import { getFlatColors, getRandomElement } from '../utils/index'
 import { Controlled as CodeMirror } from 'react-codemirror2'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/material.css'
@@ -7,160 +17,54 @@ import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/addon/selection/mark-selection.js'
 import ExecutionContext from './ExecutionContext'
 
-const flatColors = {
-  flatRed: '#fea3aa',
-  flatOrange: '#f8b88b',
-  flatPink: '#f2a2e8',
-  flatGreen: '#baed91',
-  flatYellow: '#faf884',
-  flatBlue: '#b2cefe'
-}
+/*
+  Todos
+    Update (UI) code as it executes
+    this
+    arguments
+    closures
+    handleRun speed from UI
+*/
 
-function getRandomItem (arr) {
-  return arr[~~(arr.length * Math.random())];
-}
 
-function getTotalLineLengths (lengths, lineNumber) {
-  let count = 0
+/*
+  this.myInterpreter.getScope()
+  this.myInterpreter.getValueFromScope('varName')
 
-  for (let i = 0; i < lineNumber; i++) {
-    // this one weird trick solves off by one errors. (+ 1)
-    count += lengths[i] + 1
-  }
+  this.myInterpreter.getScope() === this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].scope
 
-  return count
-}
+  Get this -> stack[stack.length - 1].thisExpression.properties
 
-function formatCharLoc (code, charIndex) {
-  const lineLengths = code.split('\n').map((line) => line.length)
-
-  let line = 0;
-  let ch = 0
-
-  for (let i = 0; i < code.length + 1; i++) {
-    if (i === charIndex) {
-      return {
-        line,
-        ch: ch - getTotalLineLengths(lineLengths, line),
-      }
-    }
-
-    if (code[i] === '\n') {
-      line++
-    }
-
-    ch++
-  }
-}
-
-const globalsToIgnore = {
- "Infinity": true,
- "NaN": true,
- "undefined": true,
- "window": true,
- "self": true,
- "Function": true,
- "Object": true,
- "Array": true,
- "Number": true,
- "String": true,
- "Boolean": true,
- "Date": true,
- "Math": true,
- "RegExp": true,
- "JSON": true,
- "Error": true,
- "EvalError": true,
- "RangeError": true,
- "ReferenceError": true,
- "SyntaxError": true,
- "TypeError": true,
- "URIError": true,
- "isNaN": true,
- "isFinite": true,
- "parseFloat": true,
- "parseInt": true,
- "eval": true,
- "escape": true,
- "unescape": true,
- "decodeURI": true,
- "decodeURIComponent": true,
- "encodeURI": true,
- "encodeURIComponent": true,
- "alert": true,
- "console": true,
-}
-
-function filterGlobals (properties) {
-  return Object.keys(properties).reduce((result, prop) => {
-    if (globalsToIgnore[prop] !== true) {
-      result[prop] = properties[prop]
-    }
-    return result
-  }, {})
-}
-
-function createNewExecutionContext (previousHighlight, currentHighlight) {
-  return previousHighlight.node.type === 'CallExpression' && currentHighlight.node.type === 'BlockStatement'
-}
-
-function endExecutionContext (currentHighlight) {
-  if (currentHighlight.node.type === 'CallExpression') {
-    if (currentHighlight.doneCallee_ === true && currentHighlight.doneExec_ === true) {
-      return true
-    }
-  }
-
-  return false
-}
-
-function getCalleeName (callee) {
-  if (callee.name) {
-    return callee.name
-  } else if (callee.property) {
-    return callee.property.name
-  } else {
-    return 'Not handling this case 🙈'
-  }
-}
-
-function getScopeName (stack) {
-  for (let i = stack.length - 1; i >= 0; i--) {
-    if (stack[i].node.callee) {
-      return getCalleeName(stack[i].node.callee)
-    }
-  }
-
-  return 'Global' // needed?
-}
+  All methods - Object.getPrototypeOf(this.myInterpreter)
+*/
 
 class App extends Component {
   state = {
     code: ``,
-    highlight: {},
+    highlighted: {},
     scopes: {},
     stack: [],
   }
   myInterpreter = getInterpreter('')
   chosenColors = []
   markers = []
-  previousHighlight = { node: { type: null}}
+  previousHighlight = { node: { type: null } }
   clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {
+    const flatColors = getFlatColors()
+
     const availableColors = Object.keys(flatColors)
       .filter((color) => !this.chosenColors.includes(color))
 
-    const randomColor = getRandomItem(availableColors)
+    const randomColor = getRandomElement(availableColors)
 
     this.chosenColors.push(randomColor)
 
     return flatColors[randomColor]
   }
-  handleStep = () => {
-    const { stateStack } = this.myInterpreter
-
-    if (stateStack.length) {
-      const node = stateStack[stateStack.length - 1].node
+  highlightCode = (stack) => {
+    if (stack.length) {
+      const node = stack[stack.length - 1].node
       const start = node.start
       const end = node.end
 
@@ -174,150 +78,8 @@ class App extends Component {
         )
       )
     }
-
-    /*
-      this.myInterpreter.getScope()
-      this.myInterpreter.getValueFromScope('varName')
-
-      this.myInterpreter.getScope() === this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].scope
-
-      Get this -> stack[stack.length - 1].thisExpression.properties
-
-      All methods - Object.getPrototypeOf(this.myInterpreter)
-    */
-
-    let ok
-    try {
-      const highlightStack = this.myInterpreter.stateStack
-      const highlight = highlightStack[highlightStack.length - 1]
-      this.setState({highlight: highlight.node})
-
-      if (this.state.stack.length === 0) {
-        this.setState({
-          stack: [{
-            name: 'Global',
-            closure: false
-          }],
-          scopes: {
-            'Global': {
-              'window': 'global object',
-              'this': 'window',
-            }
-          }
-        })
-      }
-
-      if (createNewExecutionContext(this.previousHighlight, highlight)) {
-        const name = getCalleeName(this.previousHighlight.node.callee)
-
-        this.setState(({ stack, scopes }) => {
-          return {
-            stack: stack.concat([{
-              name,
-              closure: false,
-            }]),
-            scopes: {
-              ...scopes,
-              [name]: {}
-            }
-          }
-        })
-      }
-
-      if (endExecutionContext(highlight)) {
-        // todo. handle closures
-        const name = getCalleeName(highlight.node.callee)
-
-        if (name === 'Global') return
-
-        this.setState(({ stack }) => ({
-          stack: stack.filter((s) => s.name !== name),
-        }))
-      }
-
-      const { node } = highlight
-      const { type } = node
-
-      if (node.operator && node.operator === '=') {
-        // handles variables with "var"
-
-        const identifier = node.left.name
-        const value = formatValue(node.right.type, node.right)
-
-        this.setState(({ scopes }) => ({
-          scopes: {
-            ...scopes,
-            'Global': {
-              ...scopes.Global,
-              [identifier]: value,
-            }
-          }
-        }))
-      }
-
-      if (type === 'VariableDeclaration') {
-        if (node.declarations.length > 1) {
-          console.log('Check this')
-        }
-
-        const scopeName = getScopeName(highlightStack)
-
-        const { init, id } = node.declarations[0]
-        const identifier = id.name
-
-        const value = formatValue(init.type, init)
-
-        this.setState(({ scopes }) => ({
-          scopes: {
-            ...scopes,
-            [scopeName]: {
-              ...scopes[scopeName],
-              [identifier]: value
-            }
-          }
-        }))
-      } else if (type === 'FunctionDeclaration') {
-        const scopeName = getScopeName(highlightStack)
-
-        const { id } = node
-        const identifier = id.name
-
-        this.setState(({ scopes }) => ({
-          scopes: {
-            ...scopes,
-            [scopeName]: {
-              ...scopes[scopeName],
-              [identifier]: 'fn()'
-            }
-          }
-        }))
-      } else if (type.includes('Declaration')) {
-        console.log('Handle this case')
-      }
-
-
-      // console.log('*******')
-      // console.log('\n')
-      // console.log('INTERPRETER', filterGlobals(this.myInterpreter))
-      // console.log('----------------')
-      // console.log('SCOPE', highlight.properties)
-      // console.log('----------------')
-      // highlightStack.forEach((s) => console.log(s.node.type))
-      // console.log(highlight)
-      // console.log('\n')
-      // console.log('*******')
-
-      this.previousHighlight = highlight
-      ok = this.myInterpreter.step()
-    } finally {
-      if (!ok) {
-        // No more code to step through
-        this.markers.forEach((m) => m.clear())
-      }
-    }
   }
-  handleSlowRun = () => {
-    // todo: make step speed an option
+  handleRun = (e, speed = 1000) => {
     const interval = window.setInterval(() => {
       const state = this.myInterpreter.stateStack[0]
 
@@ -327,15 +89,140 @@ class App extends Component {
       }
 
       this.handleStep()
-    }, 500)
+    }, speed)
+  }
+  handleNoVar = ({ left, right, }) => {
+    const identifier = left.name
+    const value = formatValue(right.type, right)
+
+    this.setState(({ scopes }) => ({
+      scopes: {
+        ...scopes,
+        'Global': {
+          ...scopes.Global,
+          [identifier]: value,
+        }
+      }
+    }))
+  }
+  handleVariableDeclaration = (scopeName, node) => {
+    if (node.declarations.length > 1) {
+      console.log('Check this')
+    }
+
+    const { init, id } = node.declarations[0]
+    const identifier = id.name
+
+    const value = formatValue(init.type, init)
+
+    this.setState(({ scopes }) => ({
+      scopes: {
+        ...scopes,
+        [scopeName]: {
+          ...scopes[scopeName],
+          [identifier]: value
+        }
+      }
+    }))
+  }
+  handleFunctionDeclaration = (scopeName, node) => {
+    const { id } = node
+    const identifier = id.name
+
+    this.setState(({ scopes }) => ({
+      scopes: {
+        ...scopes,
+        [scopeName]: {
+          ...scopes[scopeName],
+          [identifier]: 'fn()'
+        }
+      }
+    }))
+  }
+  handleStep = () => {
+    const highlightStack = this.myInterpreter.stateStack
+
+    this.highlightCode(highlightStack)
+
+    const highlighted = highlightStack[highlightStack.length - 1]
+    this.setState({highlighted: highlighted.node})
+
+    if (this.state.stack.length === 0) {
+      this.setState(getFirstStepState())
+    }
+
+    if (createNewExecutionContext(this.previousHighlight, highlighted)) {
+      const name = getCalleeName(this.previousHighlight.node.callee)
+
+      this.setState(({ stack, scopes }) => {
+        return {
+          stack: stack.concat([{
+            name,
+            closure: false,
+          }]),
+          scopes: {
+            ...scopes,
+            [name]: {}
+          }
+        }
+      })
+    }
+
+    if (endExecutionContext(highlighted)) {
+      const name = getCalleeName(highlighted.node.callee)
+
+      if (name === 'Global') return
+
+      this.setState(({ stack }) => ({
+        stack: stack.filter((s) => s.name !== name),
+      }))
+    }
+
+
+
+    const { node } = highlighted
+
+    if (node.operator === '=') {
+      this.handleNoVar(node)
+    } else if (node.type === 'VariableDeclaration') {
+      this.handleVariableDeclaration(getScopeName(highlightStack), node)
+    } else if (node.type === 'FunctionDeclaration') {
+      this.handleFunctionDeclaration(getScopeName(highlightStack), node)
+    } else {
+      console.log('Uh. Handle this case.')
+    }
+
+
+    // console.log('*******')
+    // console.log('\n')
+    // console.log('INTERPRETER', filterGlobals(this.myInterpreter))
+    // console.log('----------------')
+    // console.log('SCOPE', highlighted.properties)
+    // console.log('----------------')
+    // highlightStack.forEach((s) => console.log(s.node.type))
+    // console.log(highlighted)
+    // console.log('\n')
+    // console.log('*******')
+
+    this.previousHighlight = highlighted
+
+    let ok
+    try {
+      ok = this.myInterpreter.step()
+    } finally {
+      if (!ok) {
+        // No more code to step through
+        this.markers.forEach((m) => m.clear())
+      }
+    }
   }
   render() {
-    const { code, highlight, stack, scopes } = this.state
+    const { code, highlighted, stack, scopes } = this.state
 
     return (
       <div>
         <button onClick={this.handleStep}>STEP</button>
-        <button onClick={this.handleSlowRun}>SLOW RUN</button>
+        <button onClick={this.handleRun}>SLOW RUN</button>
         <CodeMirror
           ref={(cm) => this.cm = cm}
           value={code}
@@ -349,7 +236,7 @@ class App extends Component {
             this.myInterpreter = getInterpreter(code)
           }}
         />
-        {/*<pre>{JSON.stringify(highlight, null, 2) }</pre>*/}
+        {/*<pre>{JSON.stringify(highlighted, null, 2) }</pre>*/}
         {stack.length === 0
           ? null
           : <ExecutionContext
