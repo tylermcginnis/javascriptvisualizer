@@ -150,3 +150,16 @@ var user = {
     }
   }
 }
+
+function doThing () {
+  var name = 'Tyler'
+
+  function nestedFn() {
+    var age = 28
+    return age
+  }
+
+  nestedFn()
+}
+
+doThing

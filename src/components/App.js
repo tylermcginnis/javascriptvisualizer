@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { getInterpreter, parseAST } from '../utils/parser'
+import { getInterpreter, formatValue } from '../utils/parser'
 import { Controlled as CodeMirror } from 'react-codemirror2'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/material.css'
@@ -124,6 +124,16 @@ function getCalleeName (callee) {
   }
 }
 
+function getScopeName (stack) {
+  for (let i = stack.length - 1; i >= 0; i--) {
+    if (stack[i].node.callee) {
+      return getCalleeName(stack[i].node.callee)
+    }
+  }
+
+  return 'Global' // needed?
+}
+
 class App extends Component {
   state = {
     code: ``,
@@ -225,17 +235,77 @@ class App extends Component {
         }))
       }
 
+      const { node } = highlight
+      const { type } = node
 
-      console.log('*******')
-      console.log('\n')
-      console.log('INTERPRETER', filterGlobals(this.myInterpreter))
-      console.log('----------------')
-      console.log('SCOPE', highlight.properties)
-      console.log('----------------')
-      highlightStack.forEach((s) => console.log(s.node.type))
-      console.log(highlight)
-      console.log('\n')
-      console.log('*******')
+      if (node.operator && node.operator === '=') {
+        // handles variables with "var"
+
+        const identifier = node.left.name
+        const value = formatValue(node.right.type, node.right)
+
+        this.setState(({ scopes }) => ({
+          scopes: {
+            ...scopes,
+            'Global': {
+              ...scopes.Global,
+              [identifier]: value,
+            }
+          }
+        }))
+      }
+
+      if (type === 'VariableDeclaration') {
+        if (node.declarations.length > 1) {
+          console.log('Check this')
+        }
+
+        const scopeName = getScopeName(highlightStack)
+
+        const { init, id } = node.declarations[0]
+        const identifier = id.name
+
+        const value = formatValue(init.type, init)
+
+        this.setState(({ scopes }) => ({
+          scopes: {
+            ...scopes,
+            [scopeName]: {
+              ...scopes[scopeName],
+              [identifier]: value
+            }
+          }
+        }))
+      } else if (type === 'FunctionDeclaration') {
+        const scopeName = getScopeName(highlightStack)
+
+        const { id } = node
+        const identifier = id.name
+
+        this.setState(({ scopes }) => ({
+          scopes: {
+            ...scopes,
+            [scopeName]: {
+              ...scopes[scopeName],
+              [identifier]: 'fn()'
+            }
+          }
+        }))
+      } else if (type.includes('Declaration')) {
+        console.log('Handle this case')
+      }
+
+
+      // console.log('*******')
+      // console.log('\n')
+      // console.log('INTERPRETER', filterGlobals(this.myInterpreter))
+      // console.log('----------------')
+      // console.log('SCOPE', highlight.properties)
+      // console.log('----------------')
+      // highlightStack.forEach((s) => console.log(s.node.type))
+      // console.log(highlight)
+      // console.log('\n')
+      // console.log('*******')
 
       this.previousHighlight = highlight
       ok = this.myInterpreter.step()
