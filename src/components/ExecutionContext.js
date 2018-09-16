@@ -69,7 +69,7 @@ class ExecutionContext extends Component {
                 context={remainingStack[0].name}
                 scopes={scopes}
                 remainingStack={remainingStack.slice(1)}
-                getColor={this.props.getColor}
+                getColor={getColor}
               />}
         </VariableEnvironment>
       </ExecutionContextStyles>
