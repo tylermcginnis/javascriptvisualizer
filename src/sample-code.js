@@ -86,3 +86,67 @@ var name = 'Tyler'
 doMe()
 var age = 28
 doYou()
+
+scopes: {
+  Program: {
+    doThing: fn(),
+    name: 'Tyler',
+  },
+  doThing: {
+    age: 28,
+  }
+},
+stack: [
+  {
+    name: 'Program',
+    closure: false,
+  },
+  {
+    name: 'doThing',
+    closure: false
+  }
+]
+
+
+scopes: {
+  Program: {
+    doThing: fn(),
+    name: 'Tyler',
+  },
+  greet: {
+    inner: 'hello',
+  },
+},
+stack: [
+  {
+    name: 'Program',
+    closure: false,
+  },
+  {
+    name: 'greet',
+    closure: false
+  }.
+  {
+    name: 'greet',
+    closure: false,
+  }
+]
+
+
+// todo. handle this case
+var user = {
+  name: 'Tyler',
+  age: 27,
+  greet: function () {
+    var inner = 'hello'
+    this.mother.greet()
+    alert('Greeeeeet')
+  },
+  mother: {
+    name: 'Stacey',
+    greet: function () {
+      var another = 'okokok'
+     console.log('Greeeeeting')
+    }
+  }
+}

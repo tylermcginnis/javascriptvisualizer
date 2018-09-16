@@ -1,22 +1,11 @@
 import React, { Component } from 'react'
-import styled from 'styled-components'
 import { getInterpreter, parseAST } from '../utils/parser'
 import { Controlled as CodeMirror } from 'react-codemirror2'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/material.css'
 import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/addon/selection/mark-selection.js'
-
-function getRandomItem (arr) {
-  return arr[~~(arr.length * Math.random())];
-}
-
-const colors = {
-  darkBlue: '#162b35',
-  pink: '#ce91c8',
-  white: '#fff',
-  blue: '#569bd1',
-}
+import ExecutionContext from './ExecutionContext'
 
 const flatColors = {
   flatRed: '#fea3aa',
@@ -27,71 +16,8 @@ const flatColors = {
   flatBlue: '#b2cefe'
 }
 
-const ExecutionContextStyles = styled.div`
-  padding: 10px;
-  margin: 10px;
-  border-radius: 5px;
-  background: ${({ background }) => background};
-  color: ${({ color }) => color};
-
-  > h1 {
-    margin: 0;
-    font-size: 40px;
-  }
-`
-
-const VariableEnvironment = styled.ul`
-  font-size: 24px;
-  list-style-type: none;
-`
-
-const Variable = styled.li`
-  display: table;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
-  font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
-  color: ${colors.white};
-  background: ${({ background }) => background};
-`
-
-const Identifier = styled.span`
-  color: ${({ color }) => color}
-`
-
-const Value = styled.span`
-  color: ${({ color }) => color}
-`
-
-class ExecutionContext extends Component {
-  color = this.color || this.props.getColor()
-  render() {
-    const { context, variables, getColor } = this.props
-
-    return (
-      <ExecutionContextStyles background={this.color}>
-        <h1>{context}'s {context === 'Global' ? ' Scope' : ' Execution Context'}</h1>
-        <VariableEnvironment>
-          {variables.map(({ identifier, type, value, variables }, index) => {
-            return (
-              <span key={index}>
-                <Variable background={colors.darkBlue}>
-                  <Identifier color={colors.pink}>{identifier}</Identifier>: <Value color={colors.white}>{value}</Value>
-                </Variable>
-                {type === 'function' && (
-                  <ExecutionContext
-                    context={identifier}
-                    variables={variables}
-                    getColor={getColor}
-                  />
-                )}
-              </span>
-            )
-          })}
-        </VariableEnvironment>
-      </ExecutionContextStyles>
-    )
-  }
+function getRandomItem (arr) {
+  return arr[~~(arr.length * Math.random())];
 }
 
 function getTotalLineLengths (lengths, lineNumber) {
@@ -201,7 +127,9 @@ function getCalleeName (callee) {
 class App extends Component {
   state = {
     code: ``,
-    highlight: {}
+    highlight: {},
+    scopes: {},
+    stack: [],
   }
   myInterpreter = getInterpreter('')
   chosenColors = []
@@ -250,30 +178,60 @@ class App extends Component {
 
     let ok
     try {
-      const stack = this.myInterpreter.stateStack
-      const highlight = stack[stack.length - 1]
+      const highlightStack = this.myInterpreter.stateStack
+      const highlight = highlightStack[highlightStack.length - 1]
       this.setState({highlight: highlight.node})
 
+      if (this.state.stack.length === 0) {
+        this.setState({
+          stack: [{
+            name: 'Program',
+            closure: false
+          }],
+          scopes: {
+            'Program': {
+              'window': 'global object',
+              'this': 'window',
+            }
+          }
+        })
+      }
+
       if (createNewExecutionContext(this.previousHighlight, highlight)) {
-        console.log('New Context With ', getCalleeName(this.previousHighlight.node.callee))
+        const name = getCalleeName(this.previousHighlight.node.callee)
+
+        this.setState(({ stack }) => {
+          return {
+            stack: stack.concat([{
+              name,
+              closure: false,
+            }])
+          }
+        })
       }
 
       if (endExecutionContext(highlight)) {
-        console.log('End', getCalleeName(highlight.node.callee), 'Context')
+        // todo. handle closures
+        const name = getCalleeName(highlight.node.callee)
+
+        this.setState(({ stack }) => ({
+          stack: stack.filter((s) => s.name === name)
+        }))
       }
 
-      this.previousHighlight = highlight
 
-      // console.log('*******')
-      // console.log('\n')
-      // console.log('INTERPRETER', filterGlobals(this.myInterpreter))
-      // console.log('----------------')
-      // console.log('SCOPE', scope.properties)
-      // console.log('----------------')
-      // stack.forEach((s) => console.log(s.node.type))
-      // console.log(state)
-      // console.log('\n')
-      // console.log('*******')
+      console.log('*******')
+      console.log('\n')
+      console.log('INTERPRETER', filterGlobals(this.myInterpreter))
+      console.log('----------------')
+      console.log('SCOPE', highlight.properties)
+      console.log('----------------')
+      highlightStack.forEach((s) => console.log(s.node.type))
+      console.log(highlight)
+      console.log('\n')
+      console.log('*******')
+
+      this.previousHighlight = highlight
       ok = this.myInterpreter.step()
     } finally {
       if (!ok) {
@@ -283,7 +241,7 @@ class App extends Component {
     }
   }
   handleSlowRun = () => {
-    // make step speed an option
+    // todo: make step speed an option
     const interval = window.setInterval(() => {
       const state = this.myInterpreter.stateStack[0]
 
@@ -316,6 +274,8 @@ class App extends Component {
         <pre>{JSON.stringify(this.state.highlight, null, 2) }</pre>
         <ExecutionContext
           context={'Global'}
+          scopes={this.state.scopes}
+          stack={this.state.stack}
           variables={this.myInterpreter ? parseAST(this.myInterpreter.ast) : []}
           getColor={this.getColor}
         />
