@@ -21,9 +21,12 @@ import ExecutionContext from './ExecutionContext'
   Todos
     Update (UI) code as it executes
     this
-    arguments
     closures
     handleRun speed from UI
+    Step through code options
+    Highlight errors
+    Don't crash on errors in code
+    Creation phase vs execution phase
 */
 
 
@@ -91,7 +94,7 @@ class App extends Component {
       this.handleStep()
     }, speed)
   }
-  handleNoVar = ({ left, right, }) => {
+  handleNoVarDeclaration = ({ left, right, }) => {
     const identifier = left.name
     const value = formatValue(right.type, right)
 
@@ -139,7 +142,7 @@ class App extends Component {
       }
     }))
   }
-  handleNewExecutionContext = (name) => {
+  handleNewExecutionContext = ({ name, scope, thisExpression }) => {
     this.setState(({ stack, scopes }) => {
       return {
         stack: stack.concat([{
@@ -148,7 +151,9 @@ class App extends Component {
         }]),
         scopes: {
           ...scopes,
-          [name]: {}
+          [name]: {
+            arguments: formatValue('Arguments', scope.properties.arguments.properties)
+          }
         }
       }
     })
@@ -162,13 +167,11 @@ class App extends Component {
   }
   handleNewVariable = (node, scopeName) => {
     if (node.operator === '=') {
-      this.handleNoVar(node)
+      this.handleNoVarDeclaration(node)
     } else if (node.type === 'VariableDeclaration') {
       this.handleVariableDeclaration(scopeName, node)
     } else if (node.type === 'FunctionDeclaration') {
       this.handleFunctionDeclaration(scopeName, node)
-    } else {
-      console.log('Uh. Handle this case.')
     }
   }
   handleStep = () => {
@@ -184,7 +187,11 @@ class App extends Component {
     }
 
     if (createNewExecutionContext(this.previousHighlight, highlighted)) {
-      this.handleNewExecutionContext(getCalleeName(this.previousHighlight.node.callee))
+      this.handleNewExecutionContext({
+        name: getCalleeName(this.previousHighlight.node.callee),
+        scope: highlighted.scope,
+        thisExpression: highlighted.thisExpression,
+      })
     }
 
     if (endExecutionContext(highlighted)) {
@@ -196,21 +203,19 @@ class App extends Component {
       getScopeName(highlightStack)
     )
 
-
-    // console.log('*******')
     // console.log('\n')
+    // console.log('*******')
     // console.log('SCOPE', highlighted.properties)
     // console.log('----------------')
     // highlightStack.forEach((s) => console.log(s.node.type))
     // console.log(highlighted)
-    // console.log('\n')
     // console.log('*******')
+    // console.log('\n')
 
     this.previousHighlight = highlighted
 
-    let ok
     try {
-      ok = this.myInterpreter.step()
+      var ok = this.myInterpreter.step()
     } finally {
       if (!ok) {
         // No more code to step through

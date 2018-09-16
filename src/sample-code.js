@@ -180,3 +180,15 @@ function add (arr) {
 }
 
 add([1,2,3])
+
+
+
+
+var name = 'Tyler'
+
+function doThing (arg) {
+  var age = 28
+  return name + ' ' + arg
+}
+
+doThing(name)

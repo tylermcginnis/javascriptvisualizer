@@ -54,6 +54,43 @@ function arrayExpressionToString (elements) {
   return str + ']'
 }
 
+function argumentsToString (args, isArray = false, includeLength = true) {
+  const length = Object.keys(args).length
+
+  if (length === 0) {
+    return includeLength === true ? '{ length: 0 }' : ''
+  }
+
+  let str = isArray === true
+    ? '['
+    : '{ '
+
+  let count = 0
+
+  for (let key in args) {
+    count++
+    const arg = args[key]
+    if (arg.type === 'string') {
+      str += isArray ? `"${arg.data}"` : `${key}: "${arg.data}"`
+    } else if (arg.type === 'function') {
+      str += isArray ? 'fn()' : `${key}: fn()`
+    } else if (arg.type === 'boolean' || arg.type === 'number') {
+      str += isArray ? arg.data : `${key}: ${arg.data}`
+    } else {
+      str += isArray
+        ? argumentsToString(arg.properties, typeof arg.length !== 'undefined', false)
+        : `${key}: ${argumentsToString(arg.properties, typeof arg.length !== 'undefined', false)}`
+    }
+
+    str += (count === length  ? '' : ', ')
+  }
+
+  const lengthString = includeLength === false ? '' : `, length: ${length} }`
+  const appendage = isArray === true ? ']' : lengthString
+
+  return str + appendage
+}
+
 export function formatValue (type, init) {
   if (type === 'FunctionExpression') {
     return 'fn()'
@@ -61,6 +98,8 @@ export function formatValue (type, init) {
     return arrayExpressionToString(init.elements)
   } else if (type === 'ObjectExpression') {
     return objectExpressionToString(init.properties)
+  } else if (type === 'Arguments') {
+    return argumentsToString(init)
   } else {
     return init.value
   }
