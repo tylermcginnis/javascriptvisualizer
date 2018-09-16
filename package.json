@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "codemirror": "^5.40.0",
-    "deep-filter": "^1.0.2",
     "js-interpreter": "^1.4.6",
     "react": "^16.5.0",
     "react-codemirror2": "^5.1.0",
