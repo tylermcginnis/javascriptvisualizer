@@ -139,6 +139,38 @@ class App extends Component {
       }
     }))
   }
+  handleNewExecutionContext = (name) => {
+    this.setState(({ stack, scopes }) => {
+      return {
+        stack: stack.concat([{
+          name,
+          closure: false,
+        }]),
+        scopes: {
+          ...scopes,
+          [name]: {}
+        }
+      }
+    })
+  }
+  handleEndExecutionContext = (name) => {
+    if (name === 'Global') return
+
+    this.setState(({ stack }) => ({
+      stack: stack.filter((s) => s.name !== name),
+    }))
+  }
+  handleNewVariable = (node, scopeName) => {
+    if (node.operator === '=') {
+      this.handleNoVar(node)
+    } else if (node.type === 'VariableDeclaration') {
+      this.handleVariableDeclaration(scopeName, node)
+    } else if (node.type === 'FunctionDeclaration') {
+      this.handleFunctionDeclaration(scopeName, node)
+    } else {
+      console.log('Uh. Handle this case.')
+    }
+  }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
 
@@ -152,51 +184,21 @@ class App extends Component {
     }
 
     if (createNewExecutionContext(this.previousHighlight, highlighted)) {
-      const name = getCalleeName(this.previousHighlight.node.callee)
-
-      this.setState(({ stack, scopes }) => {
-        return {
-          stack: stack.concat([{
-            name,
-            closure: false,
-          }]),
-          scopes: {
-            ...scopes,
-            [name]: {}
-          }
-        }
-      })
+      this.handleNewExecutionContext(getCalleeName(this.previousHighlight.node.callee))
     }
 
     if (endExecutionContext(highlighted)) {
-      const name = getCalleeName(highlighted.node.callee)
-
-      if (name === 'Global') return
-
-      this.setState(({ stack }) => ({
-        stack: stack.filter((s) => s.name !== name),
-      }))
+      this.handleEndExecutionContext(getCalleeName(highlighted.node.callee))
     }
 
-
-
-    const { node } = highlighted
-
-    if (node.operator === '=') {
-      this.handleNoVar(node)
-    } else if (node.type === 'VariableDeclaration') {
-      this.handleVariableDeclaration(getScopeName(highlightStack), node)
-    } else if (node.type === 'FunctionDeclaration') {
-      this.handleFunctionDeclaration(getScopeName(highlightStack), node)
-    } else {
-      console.log('Uh. Handle this case.')
-    }
+    this.handleNewVariable(
+      highlighted.node,
+      getScopeName(highlightStack)
+    )
 
 
     // console.log('*******')
     // console.log('\n')
-    // console.log('INTERPRETER', filterGlobals(this.myInterpreter))
-    // console.log('----------------')
     // console.log('SCOPE', highlighted.properties)
     // console.log('----------------')
     // highlightStack.forEach((s) => console.log(s.node.type))
