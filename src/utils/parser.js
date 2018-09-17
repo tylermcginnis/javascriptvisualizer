@@ -195,7 +195,8 @@ export function getFirstStepState () {
   return {
     stack: [{
       name: 'Global',
-      closure: false
+      closure: false,
+      phase: 'Creation'
     }],
     scopes: {
       'Global': {

@@ -22,11 +22,11 @@ import ExecutionContext from './ExecutionContext'
 /*
   Todos
     closures
-    handleRun speed from UI
     Step through code options
+    Creation phase vs execution phase
+    handleRun speed from UI
     Highlight errors
     Don't crash on errors in code
-    Creation phase vs execution phase
     get example code with two greets working
 */
 
@@ -124,7 +124,7 @@ class App extends Component {
         ...scopes,
         [scopeName]: {
           ...scopes[scopeName],
-          [identifier]: value
+          [identifier]: value,
         }
       }
     }))
@@ -159,7 +159,7 @@ class App extends Component {
         ...scopes,
         [scopeName]: {
           ...scopes[scopeName],
-          ...scopeArgs
+          ...scopeArgs,
         }
       }
     }))
@@ -170,6 +170,7 @@ class App extends Component {
         stack: stack.concat([{
           name,
           closure: false,
+          phase: 'Creation'
         }]),
         scopes: {
           ...scopes,
@@ -188,6 +189,18 @@ class App extends Component {
 
     this.setState(({ stack }) => ({
       stack: stack.filter((s) => s.name !== name),
+    }))
+  }
+  toExecutionPhase = (scopeName) => {
+    this.setState(({ stack }) => ({
+      stack: stack.map((pancake) => {
+        return pancake.name === scopeName
+          ? {
+            ...pancake,
+            phase: 'Execution'
+          }
+          : pancake
+      })
     }))
   }
   handleNewVariable = (node, scopeName) => {
@@ -278,6 +291,7 @@ class App extends Component {
           ? null
           : <ExecutionContext
               context={stack[0].name}
+              phase={stack[0].phase}
               scopes={scopes}
               remainingStack={stack.slice(1)}
               getColor={this.getColor}

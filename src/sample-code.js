@@ -197,18 +197,6 @@ doThing(name, function () {
 
 
 
-var map = {
-  tyler: 'Tyler',
-  ryan: 'Ryan'
-}
-
-function getName (name) {
-  return map[name]
-}
-
-getName('Tyler')
-
-
 // Edge case
 var name = 'Jake'
 
@@ -219,3 +207,18 @@ function doThing () {
 }
 
 doThing()
+
+
+// This doesnt work all the way
+function Person (name, age) {
+  this.name = name
+  this.age = age
+}
+
+Person.prototype.sayName = function () {
+  alert(this.name)
+}
+
+var me = new Person('Tyler', 28)
+
+me.sayName()
