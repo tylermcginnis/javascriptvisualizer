@@ -54,7 +54,25 @@ function arrayExpressionToString (elements) {
   return str + ']'
 }
 
-function argumentsToString (args, isArray = false, includeLength = true) {
+export function argToString (arg, key, isArray) {
+  console.log('arg', arg)
+  if (arg.type === 'string') {
+    return isArray ? `"${arg.data}"` : `${key}: "${arg.data}"`
+  } else if (arg.type === 'undefined') {
+    return isArray ? `undefined` : `${key}: undefined`
+  } else if (arg.type === 'function') {
+    return isArray ? 'fn()' : `${key}: fn()`
+  } else if (arg.type === 'boolean' || arg.type === 'number') {
+    return isArray ? arg.data : `${key}: ${arg.data}`
+  } else {
+    return isArray
+      ? argumentsToString(arg.properties, typeof arg.length !== 'undefined', false)
+      : `${key}: ${argumentsToString(arg.properties, typeof arg.length !== 'undefined', false)}`
+  }
+
+}
+
+export function argumentsToString (args, isArray = false, includeLength = true) {
   const length = Object.keys(args).length
 
   if (length === 0) {
@@ -70,22 +88,11 @@ function argumentsToString (args, isArray = false, includeLength = true) {
   for (let key in args) {
     count++
     const arg = args[key]
-    if (arg.type === 'string') {
-      str += isArray ? `"${arg.data}"` : `${key}: "${arg.data}"`
-    } else if (arg.type === 'function') {
-      str += isArray ? 'fn()' : `${key}: fn()`
-    } else if (arg.type === 'boolean' || arg.type === 'number') {
-      str += isArray ? arg.data : `${key}: ${arg.data}`
-    } else {
-      str += isArray
-        ? argumentsToString(arg.properties, typeof arg.length !== 'undefined', false)
-        : `${key}: ${argumentsToString(arg.properties, typeof arg.length !== 'undefined', false)}`
-    }
-
+    str += argToString(arg, key, isArray)
     str += (count === length  ? '' : ', ')
   }
 
-  const lengthString = includeLength === false ? '' : `, length: ${length} }`
+  const lengthString = includeLength === false ? ' }' : `, length: ${length} }`
   const appendage = isArray === true ? ']' : lengthString
 
   return str + appendage

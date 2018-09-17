@@ -6,7 +6,8 @@ import {
   endExecutionContext,
   getCalleeName,
   getScopeName,
-  getFirstStepState
+  getFirstStepState,
+  argToString,
 } from '../utils/parser'
 import { formatCharLoc } from '../utils/editor'
 import { getFlatColors, getRandomElement } from '../utils/index'
@@ -143,6 +144,13 @@ class App extends Component {
     }))
   }
   handleNewExecutionContext = ({ name, scope, thisExpression }) => {
+    const scopeArgs = Object.keys(scope.properties)
+      .filter((p) => p !== 'arguments')
+      .reduce((result, key) => {
+        result[key] = argToString(scope.properties[key], key, true)
+        return result
+      }, {})
+
     this.setState(({ stack, scopes }) => {
       return {
         stack: stack.concat([{
@@ -153,7 +161,8 @@ class App extends Component {
           ...scopes,
           [name]: {
             arguments: formatValue('Arguments', scope.properties.arguments.properties),
-            this: formatValue('thisExpression', thisExpression)
+            this: formatValue('thisExpression', thisExpression),
+            ...scopeArgs
           }
         }
       }
@@ -204,13 +213,29 @@ class App extends Component {
       getScopeName(highlightStack)
     )
 
-    console.log('\n')
-    console.log('*******')
-    console.log('SCOPE', this.myInterpreter.getScope().properties)
-    highlightStack.forEach((s) => console.log(s.node.type))
-    console.log(highlighted)
-    console.log('*******')
-    console.log('\n')
+    // if (highlighted.node.type === 'AssignmentExpression') {
+    //   const scope = this.myInterpreter.getScope().properties
+
+    //   console.log('Something (Maybe) Changed!')
+    //   console.log('Highlight', highlighted.node)
+    //   console.log('ScopeName', scopeName)
+    //   console.log('Scope', scope)
+
+    //   Object.keys(scope)
+    //     .filter((v) => v !== 'arguments')
+    //     .forEach((v) => {
+    //       console.log('Name: ', v)
+    //       console.log('Val: ', scope[v].data)
+    //     })
+    // }
+
+    // console.log('\n')
+    // console.log('*******')
+    // console.log('SCOPE', this.myInterpreter.getScope().properties)
+    // highlightStack.forEach((s) => console.log(s.node.type))
+    // console.log(highlighted)
+    // console.log('*******')
+    // console.log('\n')
 
     this.previousHighlight = highlighted
 

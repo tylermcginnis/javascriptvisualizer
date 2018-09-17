@@ -194,3 +194,16 @@ function doThing (arg) {
 doThing(name, function () {
   console.log('woo')
 }, [true, 'hey', function anotehr(){}, [1,2,3, true, {name: 'cool'}]])
+
+
+
+var map = {
+  tyler: 'Tyler',
+  ryan: 'Ryan'
+}
+
+function getName (name) {
+  return map[name]
+}
+
+getName('Tyler')

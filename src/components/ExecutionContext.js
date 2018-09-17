@@ -58,7 +58,7 @@ class ExecutionContext extends Component {
             return (
               <span key={index}>
                 <Variable background={colors.darkBlue}>
-                  <Identifier color={colors.pink}>{identifier}</Identifier>: <Value color={colors.white}>{variables[identifier]}</Value>
+                  <Identifier color={colors.pink}>{identifier}</Identifier>: <Value color={colors.white}>{`${variables[identifier]}`}</Value>
                 </Variable>
               </span>
             )
