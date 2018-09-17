@@ -53,6 +53,7 @@ class App extends Component {
   chosenColors = []
   markers = []
   previousHighlight = { node: { type: null } }
+  createdExecutionContexts = {}
   clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {
     const flatColors = getFlatColors()
@@ -182,6 +183,8 @@ class App extends Component {
       }
     })
 
+    this.createdExecutionContexts[name] = true
+
     this.updateScope(scope, name)
   }
   handleEndExecutionContext = (name) => {
@@ -190,6 +193,8 @@ class App extends Component {
     this.setState(({ stack }) => ({
       stack: stack.filter((s) => s.name !== name),
     }))
+
+    this.createdExecutionContexts[name] = false
   }
   toExecutionPhase = (scopeName) => {
     this.setState(({ stack }) => ({
@@ -214,14 +219,20 @@ class App extends Component {
   }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
+    const scopeName = getScopeName(highlightStack)
 
     this.highlightCode(highlightStack)
 
     const highlighted = highlightStack[highlightStack.length - 1]
     this.setState({highlighted: highlighted.node})
 
+    if (this.createdExecutionContexts[scopeName] === true) {
+      this.toExecutionPhase(scopeName)
+    }
+
     if (this.state.stack.length === 0) {
       this.setState(getFirstStepState())
+      this.createdExecutionContexts.Global = true
     }
 
     if (createNewExecutionContext(this.previousHighlight, highlighted)) {
@@ -235,8 +246,6 @@ class App extends Component {
     if (endExecutionContext(highlighted)) {
       this.handleEndExecutionContext(getCalleeName(highlighted.node.callee))
     }
-
-    const scopeName = getScopeName(highlightStack)
 
     this.handleNewVariable(
       highlighted.node,
