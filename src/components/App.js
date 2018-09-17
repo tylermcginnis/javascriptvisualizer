@@ -8,6 +8,7 @@ import {
   getScopeName,
   getFirstStepState,
   argToString,
+  getGlobalsToIgnore,
 } from '../utils/parser'
 import { formatCharLoc } from '../utils/editor'
 import { getFlatColors, getRandomElement } from '../utils/index'
@@ -20,7 +21,6 @@ import ExecutionContext from './ExecutionContext'
 
 /*
   Todos
-    Update (UI) code as it executes
     closures
     handleRun speed from UI
     Step through code options
@@ -143,14 +143,28 @@ class App extends Component {
       }
     }))
   }
-  handleNewExecutionContext = ({ name, scope, thisExpression }) => {
+  updateScope = (scope, scopeName) => {
+    const globalsToIgnore = getGlobalsToIgnore()
+
     const scopeArgs = Object.keys(scope.properties)
       .filter((p) => p !== 'arguments')
+      .filter((p) => !globalsToIgnore[p])
       .reduce((result, key) => {
         result[key] = argToString(scope.properties[key], key, true)
         return result
       }, {})
 
+    this.setState(({ scopes }) => ({
+      scopes: {
+        ...scopes,
+        [scopeName]: {
+          ...scopes[scopeName],
+          ...scopeArgs
+        }
+      }
+    }))
+  }
+  newExecutionContext = ({ name, scope, thisExpression }) => {
     this.setState(({ stack, scopes }) => {
       return {
         stack: stack.concat([{
@@ -162,11 +176,12 @@ class App extends Component {
           [name]: {
             arguments: formatValue('Arguments', scope.properties.arguments.properties),
             this: formatValue('thisExpression', thisExpression),
-            ...scopeArgs
           }
         }
       }
     })
+
+    this.updateScope(scope, name)
   }
   handleEndExecutionContext = (name) => {
     if (name === 'Global') return
@@ -197,7 +212,7 @@ class App extends Component {
     }
 
     if (createNewExecutionContext(this.previousHighlight, highlighted)) {
-      this.handleNewExecutionContext({
+      this.newExecutionContext({
         name: getCalleeName(this.previousHighlight.node.callee),
         scope: highlighted.scope,
         thisExpression: highlighted.thisExpression,
@@ -208,34 +223,18 @@ class App extends Component {
       this.handleEndExecutionContext(getCalleeName(highlighted.node.callee))
     }
 
+    const scopeName = getScopeName(highlightStack)
+
     this.handleNewVariable(
       highlighted.node,
-      getScopeName(highlightStack)
+      scopeName,
     )
 
-    // if (highlighted.node.type === 'AssignmentExpression') {
-    //   const scope = this.myInterpreter.getScope().properties
-
-    //   console.log('Something (Maybe) Changed!')
-    //   console.log('Highlight', highlighted.node)
-    //   console.log('ScopeName', scopeName)
-    //   console.log('Scope', scope)
-
-    //   Object.keys(scope)
-    //     .filter((v) => v !== 'arguments')
-    //     .forEach((v) => {
-    //       console.log('Name: ', v)
-    //       console.log('Val: ', scope[v].data)
-    //     })
-    // }
-
-    // console.log('\n')
-    // console.log('*******')
-    // console.log('SCOPE', this.myInterpreter.getScope().properties)
-    // highlightStack.forEach((s) => console.log(s.node.type))
-    // console.log(highlighted)
-    // console.log('*******')
-    // console.log('\n')
+    // todo Dont' call this every time.
+    this.updateScope(
+      this.myInterpreter.getScope(),
+      scopeName,
+    )
 
     this.previousHighlight = highlighted
 
@@ -274,7 +273,7 @@ class App extends Component {
             })
           }}
         />
-        {/*<pre>{JSON.stringify(highlighted, null, 2) }</pre>*/}
+        <pre>{JSON.stringify(highlighted.type, null, 2) }</pre>
         {stack.length === 0
           ? null
           : <ExecutionContext

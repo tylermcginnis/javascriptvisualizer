@@ -207,3 +207,15 @@ function getName (name) {
 }
 
 getName('Tyler')
+
+
+// Edge case
+var name = 'Jake'
+
+function doThing () {
+  var name = 'Tyler'
+
+  name = 'Eyo'
+}
+
+doThing()

@@ -1,5 +1,47 @@
 import Interpreter from 'js-interpreter';
 
+const globalToIgnore = {
+  "Infinity": true,
+  "NaN": true,
+  "undefined": true,
+  "window": true,
+  "self": true,
+  "Function": true,
+  "Object": true,
+  "Array": true,
+  "Number": true,
+  "String": true,
+  "Boolean": true,
+  "Date": true,
+  "Math": true,
+  "RegExp": true,
+  "JSON": true,
+  "Error": true,
+  "EvalError": true,
+  "RangeError": true,
+  "ReferenceError": true,
+  "SyntaxError": true,
+  "TypeError": true,
+  "URIError": true,
+  "isNaN": true,
+  "isFinite": true,
+  "parseFloat": true,
+  "parseInt": true,
+  "eval": true,
+  "escape": true,
+  "unescape": true,
+  "decodeURI": true,
+  "decodeURIComponent": true,
+  "encodeURI": true,
+  "encodeURIComponent": true,
+  "alert": true,
+  "console": true,
+}
+
+export function getGlobalsToIgnore () {
+  return globalToIgnore
+}
+
 function objectExpressionToString (properties) {
   if (properties.length === 0) {
     return '{}'
@@ -55,7 +97,6 @@ function arrayExpressionToString (elements) {
 }
 
 export function argToString (arg, key, isArray) {
-  console.log('arg', arg)
   if (arg.type === 'string') {
     return isArray ? `"${arg.data}"` : `${key}: "${arg.data}"`
   } else if (arg.type === 'undefined') {
