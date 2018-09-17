@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import styled from 'styled-components'
 import {
   getInterpreter,
   formatValue,
@@ -18,16 +19,19 @@ import 'codemirror/theme/material.css'
 import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/addon/selection/mark-selection.js'
 import ExecutionContext from './ExecutionContext'
+import Welcome from './Welcome'
+import Prompt from './Prompt'
 
 /*
   Todos
     closures
-    Step through code options
-    Creation phase vs execution phase
     handleRun speed from UI
     Highlight errors
     Don't crash on errors in code
     get example code with two greets working
+
+  Stretch
+    Step through code options
 */
 
 
@@ -41,6 +45,22 @@ import ExecutionContext from './ExecutionContext'
 
   All methods - Object.getPrototypeOf(this.myInterpreter)
 */
+
+const Container = styled.div`
+  height: 100%;
+  width: 100%;
+`
+
+const Body = styled.div`
+  display: flex;
+  height: 100%;
+  width: 100%;
+
+  > * {
+    width: 50% !important;
+    height: 100% !important;
+  }
+`
 
 class App extends Component {
   state = {
@@ -258,6 +278,8 @@ class App extends Component {
       scopeName,
     )
 
+    console.log(this.myInterpreter)
+
     this.previousHighlight = highlighted
 
     try {
@@ -273,39 +295,44 @@ class App extends Component {
     const { code, highlighted, stack, scopes } = this.state
 
     return (
-      <div>
-        <button onClick={this.handleStep}>STEP</button>
-        <button onClick={this.handleRun}>SLOW RUN</button>
-        <CodeMirror
-          ref={(cm) => this.cm = cm}
-          value={code}
-          options={{
-            mode: 'javascript',
-            theme: 'material',
-            lineNumbers: true,
-          }}
-          onBeforeChange={(editor, data, code) => {
-            this.setState({code})
-            this.myInterpreter = getInterpreter(code)
-          }}
-          onFocus={() => {
-            this.setState({
-              scopes: {},
-              stack: []
-            })
-          }}
-        />
-        <pre>{JSON.stringify(highlighted.type, null, 2) }</pre>
-        {stack.length === 0
-          ? null
-          : <ExecutionContext
-              context={stack[0].name}
-              phase={stack[0].phase}
-              scopes={scopes}
-              remainingStack={stack.slice(1)}
-              getColor={this.getColor}
-            />}
-      </div>
+      <Container>
+        <Body>
+          <div>
+            <CodeMirror
+              ref={(cm) => this.cm = cm}
+              value={code}
+              options={{
+                mode: 'javascript',
+                theme: 'material',
+                lineNumbers: true,
+              }}
+              onBeforeChange={(editor, data, code) => {
+                this.setState({code})
+                this.myInterpreter = getInterpreter(code)
+              }}
+              onFocus={() => {
+                this.setState({
+                  scopes: {},
+                  stack: []
+                })
+              }}
+            />
+            <Prompt>
+              <button onClick={this.handleStep}>STEP</button>
+              <button onClick={this.handleRun}>SLOW RUN</button>
+            </Prompt>
+          </div>
+          {stack.length === 0
+            ? <Welcome />
+            : <ExecutionContext
+                context={stack[0].name}
+                phase={stack[0].phase}
+                scopes={scopes}
+                remainingStack={stack.slice(1)}
+                getColor={this.getColor}
+              />}
+        </Body>
+      </Container>
     )
   }
 }

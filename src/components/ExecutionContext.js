@@ -10,8 +10,8 @@ const colors = {
 
 const ExecutionContextStyles = styled.div`
   padding: 10px;
-  margin: 10px;
-  border-radius: 5px;
+  margin: ${({ isGlobal }) => isGlobal ? '0px' : '10px'};
+  border-radius: ${({ isGlobal }) => isGlobal ? '0px' : '5px'};
   background: ${({ background }) => background};
   color: ${({ color }) => color};
 
@@ -51,8 +51,8 @@ class ExecutionContext extends Component {
     const variables = scopes[context]
 
     return (
-      <ExecutionContextStyles background={this.color}>
-        <h1>{context}'s {context === 'Global' ? ' Scope' : ' Execution Context'}</h1>
+      <ExecutionContextStyles background={this.color} isGlobal={context ==='Global'}>
+        <h1>{context} {context === 'Global' ? ' Scope' : "'s Execution Context"}</h1>
         <pre>{phase} Phase</pre>
         <VariableEnvironment>
           {Object.keys(variables).map((identifier, index) => {
