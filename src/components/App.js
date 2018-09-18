@@ -62,6 +62,19 @@ const Body = styled.div`
   }
 `
 
+function ButtonPanel ({ handleStep, handleRun }) {
+  return (
+    <div style={{height: '3%'}}>
+      <button onClick={handleStep}>STEP</button>
+      <button onClick={handleRun}>SLOW RUN</button>
+    </div>
+  )
+}
+
+function isFunction (type) {
+  return type === 'FunctionDeclaration' || type === 'FunctionExpression'
+}
+
 class App extends Component {
   state = {
     code: ``,
@@ -74,6 +87,7 @@ class App extends Component {
   markers = []
   previousHighlight = { node: { type: null } }
   createdExecutionContexts = {}
+  closuresToCreate = {}
   clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {
     const flatColors = getFlatColors()
@@ -167,6 +181,15 @@ class App extends Component {
   updateScope = (scope, scopeName) => {
     const globalsToIgnore = getGlobalsToIgnore()
 
+    const stackItem = this.state.stack.find((s) => s.name === scopeName)
+    if (
+        stackItem &&
+        stackItem.closure === true ||
+        this.closuresToCreate[scopeName] === true
+    ) {
+      return
+    }
+
     const scopeArgs = Object.keys(scope.properties)
       .filter((p) => p !== 'arguments')
       .filter((p) => !globalsToIgnore[p])
@@ -210,9 +233,11 @@ class App extends Component {
   handleEndExecutionContext = (name) => {
     if (name === 'Global') return
 
-    this.setState(({ stack }) => ({
-      stack: stack.filter((s) => s.name !== name),
-    }))
+    const stack = this.state.stack.filter((s) =>
+      s.name !== name || this["closuresToCreate"][name] === true
+    )
+
+    this.setState({ stack })
 
     this.createdExecutionContexts[name] = false
   }
@@ -235,6 +260,25 @@ class App extends Component {
       this.handleVariableDeclaration(scopeName, node)
     } else if (node.type === 'FunctionDeclaration') {
       this.handleFunctionDeclaration(scopeName, node)
+    }
+  }
+  checkClosure = (stackLength, highlighted, scopeName) => {
+    if (stackLength > 1 && isFunction(highlighted.node.type)) {
+      this.closuresToCreate[scopeName] = true
+    }
+
+    if (highlighted.node.type === 'CallExpression' && highlighted.doneExec_) {
+      const { name } = highlighted.node.callee
+      if (this.closuresToCreate[name] === true) {
+        this.setState(({ stack }) => ({
+          stack: stack.map((s) => s.name !== name
+            ? s
+            : { ...s, closure: true }
+          )
+        }))
+
+        delete this.closuresToCreate[name]
+      }
     }
   }
   handleStep = () => {
@@ -278,7 +322,11 @@ class App extends Component {
       scopeName,
     )
 
-    console.log(this.myInterpreter)
+    this.checkClosure(
+      this.state.stack.length,
+      highlighted,
+      scopeName
+    )
 
     this.previousHighlight = highlighted
 
@@ -298,6 +346,10 @@ class App extends Component {
       <Container>
         <Body>
           <div>
+            <ButtonPanel
+              handleStep={this.handleStep}
+              handleRun={this.handleRun}
+            />
             <CodeMirror
               ref={(cm) => this.cm = cm}
               value={code}
@@ -317,16 +369,13 @@ class App extends Component {
                 })
               }}
             />
-            <Prompt>
-              <button onClick={this.handleStep}>STEP</button>
-              <button onClick={this.handleRun}>SLOW RUN</button>
-            </Prompt>
           </div>
           {stack.length === 0
             ? <Welcome />
             : <ExecutionContext
                 context={stack[0].name}
                 phase={stack[0].phase}
+                closure={stack[0].closure}
                 scopes={scopes}
                 remainingStack={stack.slice(1)}
                 getColor={this.getColor}

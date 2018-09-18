@@ -45,15 +45,33 @@ const Value = styled.span`
 `
 
 class ExecutionContext extends Component {
-  color = this.color || this.props.getColor()
+  state = {
+    color: this.color || this.props.getColor()
+  }
+  componentDidUpdate (prevProps) {
+    if (this.props.closure !== prevProps.closure) {
+      this.setState({
+        color: '#fff'
+      })
+    }
+  }
+  getHeader = () => {
+    const { context, closure } = this.props
+
+    if (closure === true) {
+      return 'Closure Scope'
+    }
+
+    return context + (context === 'Global' ? ' Scope' : "'s Execution Context")
+  }
   render() {
-    const { context, getColor, scopes, remainingStack, phase } = this.props
+    const { context, getColor, scopes, remainingStack, phase, closure } = this.props
     const variables = scopes[context]
 
     return (
-      <ExecutionContextStyles background={this.color} isGlobal={context ==='Global'}>
-        <h1>{context} {context === 'Global' ? ' Scope' : "'s Execution Context"}</h1>
-        <pre>{phase} Phase</pre>
+      <ExecutionContextStyles background={this.state.color} isGlobal={context ==='Global'}>
+        <h1>{this.getHeader()}</h1>
+        {closure === true ? null : <pre>{phase} Phase</pre>}
         <VariableEnvironment>
           {Object.keys(variables).map((identifier, index) => {
             return (
@@ -69,6 +87,7 @@ class ExecutionContext extends Component {
             : <ExecutionContext
                 context={remainingStack[0].name}
                 phase={remainingStack[0].phase}
+                closure={remainingStack[0].closure}
                 scopes={scopes}
                 remainingStack={remainingStack.slice(1)}
                 getColor={getColor}
