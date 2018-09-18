@@ -157,8 +157,36 @@ export function formatValue (type, init) {
   }
 }
 
+// These might not be needed?
+const nativeMethods = {
+  charAt: true,
+  filter: true,
+  log: true,
+}
+
 export function createNewExecutionContext (previousHighlight, currentHighlight) {
-  return previousHighlight.node.type === 'CallExpression' && currentHighlight.node.type === 'BlockStatement'
+  const prevType = previousHighlight.node.type
+  const currentType = currentHighlight.node.type
+
+  if (prevType === 'CallExpression') {
+    if (currentType === 'BlockStatement') {
+      if (
+        previousHighlight.node.callee &&
+        previousHighlight.node.callee.property &&
+        nativeMethods[previousHighlight.node.callee.property.name]
+      ) {
+        return false
+      }
+
+      return true
+    }
+
+    if (currentType === 'MemberExpression') {
+      return nativeMethods[currentHighlight.node.property.name] === true ? false : true
+    }
+  }
+
+  return false
 }
 
 export function endExecutionContext (currentHighlight) {
@@ -171,20 +199,25 @@ export function endExecutionContext (currentHighlight) {
   return false
 }
 
-export function getCalleeName (callee) {
+export function getCalleeName (callee, anonCount) {
   if (callee.name) {
     return callee.name
   } else if (callee.property) {
     return callee.property.name
+  } else if (callee.id) {
+    return callee.id.name
   } else {
-    return 'Not handling this case 🙈'
+    // todo. More than one anon fn breaks stuff
+    // https://github.com/tylermcginnis/noname/issues/1
+
+    return `anonymous_${anonCount}`
   }
 }
 
-export function getScopeName (stack) {
+export function getScopeName (stack, anonCount) {
   for (let i = stack.length - 1; i >= 0; i--) {
     if (stack[i].node.callee) {
-      return getCalleeName(stack[i].node.callee)
+      return getCalleeName(stack[i].node.callee, anonCount)
     }
   }
 

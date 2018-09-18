@@ -62,7 +62,11 @@ class ExecutionContext extends Component {
       return 'Closure Scope'
     }
 
-    return context + (context === 'Global' ? ' Scope' : "'s Execution Context")
+    if (context === 'Global') {
+      return 'Global Scope'
+    }
+
+    return context + (context.charAt(context.length - 1) === 's' ? `' Execution Context` : `'s Execution Context`)
   }
   render() {
     const { context, getColor, scopes, remainingStack, phase, closure } = this.props

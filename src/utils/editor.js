@@ -10,6 +10,7 @@ function getTotalLineLengths (lengths, lineNumber) {
 }
 
 export function formatCharLoc (code, charIndex) {
+  console.log('charIndex', charIndex)
   const lineLengths = code.split('\n').map((line) => line.length)
 
   let line = 0;

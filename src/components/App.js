@@ -62,12 +62,64 @@ const Body = styled.div`
   }
 `
 
-function ButtonPanel ({ handleStep, handleRun }) {
+const ButtonPanelContainer = styled.div`
+  background: #333333;
+  height: 8%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`
+
+const Buttons = styled.div`
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  align-self: flex-start;
+  height: 65%;
+
+  > button {
+    border: none;
+    background: none;
+    color: #919191;
+    font-size: 20px;
+  }
+
+  > button:hover {
+    color: #fff;
+    cursor: pointer;
+  }
+`
+
+const Status = styled.div`
+  background: #dfe1e9;
+  height: 35%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 300
+  font-size: 14px;
+
+  > span {
+    font-weight: 500;
+    margin-left: 10px;
+  }
+`
+
+function ButtonPanel ({ step, run, clear, operation, running, pause }) {
   return (
-    <div style={{height: '3%'}}>
-      <button onClick={handleStep}>STEP</button>
-      <button onClick={handleRun}>SLOW RUN</button>
-    </div>
+    <ButtonPanelContainer>
+      <Buttons>
+        <button onClick={step}>Step</button>
+        {running === true
+          ? <button onClick={pause}>Pause</button>
+          : <button onClick={run}>Run</button>}
+        <button onClick={clear}>Clear</button>
+        <button>Slider</button>
+      </Buttons>
+      <Status>
+        Current Operation: <span>{operation}</span>
+      </Status>
+    </ButtonPanelContainer>
   )
 }
 
@@ -81,6 +133,7 @@ class App extends Component {
     highlighted: {},
     scopes: {},
     stack: [],
+    running: false,
   }
   myInterpreter = getInterpreter('')
   chosenColors = []
@@ -119,16 +172,27 @@ class App extends Component {
     }
   }
   handleRun = (e, speed = 1000) => {
-    const interval = window.setInterval(() => {
+    this.setState({
+      running: true
+    })
+
+    this.runInterval = window.setInterval(() => {
       const state = this.myInterpreter.stateStack[0]
 
       if (state.done === true) {
         this.clearMarkers()
-        return window.clearInterval(interval)
+        return window.clearInterval(this.runInterval)
       }
 
       this.handleStep()
     }, speed)
+  }
+  handlePause = () => {
+    this.setState({
+      running: false
+    })
+
+    window.clearInterval(this.runInterval)
   }
   handleNoVarDeclaration = ({ left, right, }) => {
     const identifier = left.name
@@ -180,6 +244,9 @@ class App extends Component {
   }
   updateScope = (scope, scopeName) => {
     const globalsToIgnore = getGlobalsToIgnore()
+    var that = this
+    // console.log('Scope', scope)
+    // console.log('scopeName', scopeName)
 
     const stackItem = this.state.stack.find((s) => s.name === scopeName)
     if (
@@ -190,25 +257,30 @@ class App extends Component {
       return
     }
 
-    const scopeArgs = Object.keys(scope.properties)
-      .filter((p) => p !== 'arguments')
-      .filter((p) => !globalsToIgnore[p])
-      .reduce((result, key) => {
-        result[key] = argToString(scope.properties[key], key, true)
-        return result
-      }, {})
+    if (scope) {
+      const scopeArgs = Object.keys(scope.properties)
+        .filter((p) => p !== 'arguments')
+        .filter((p) => !globalsToIgnore[p])
+        .reduce((result, key) => {
+          result[key] = argToString(scope.properties[key], key, true)
+          return result
+        }, {})
 
-    this.setState(({ scopes }) => ({
-      scopes: {
-        ...scopes,
-        [scopeName]: {
-          ...scopes[scopeName],
-          ...scopeArgs,
+      console.log('ABOUT TO SET NEW SCOPE', scopeName)
+      this.setState(({ scopes }) => ({
+        scopes: {
+          ...scopes,
+          [scopeName]: {
+            ...scopes[scopeName],
+            ...scopeArgs,
+          }
         }
-      }
-    }))
+      }))
+    }
   }
   newExecutionContext = ({ name, scope, thisExpression }) => {
+    if (!scope) return
+
     this.setState(({ stack, scopes }) => {
       return {
         stack: stack.concat([{
@@ -234,7 +306,7 @@ class App extends Component {
     if (name === 'Global') return
 
     const stack = this.state.stack.filter((s) =>
-      s.name !== name || this["closuresToCreate"][name] === true
+      s.name !== name || this.closuresToCreate[name] === true
     )
 
     this.setState({ stack })
@@ -263,12 +335,16 @@ class App extends Component {
     }
   }
   checkClosure = (stackLength, highlighted, scopeName) => {
+    // todo figure out a way to only create a closure if there's a reference
+    // to the fn still
+
     if (stackLength > 1 && isFunction(highlighted.node.type)) {
       this.closuresToCreate[scopeName] = true
     }
 
     if (highlighted.node.type === 'CallExpression' && highlighted.doneExec_) {
-      const { name } = highlighted.node.callee
+      const name = highlighted.node.callee.name || `anonymous_${this.getAnonCount()}`
+
       if (this.closuresToCreate[name] === true) {
         this.setState(({ stack }) => ({
           stack: stack.map((s) => s.name !== name
@@ -281,9 +357,21 @@ class App extends Component {
       }
     }
   }
+  getAnonCount = () => {
+    return this.state.stack.reduce((count, item) => {
+      if (item.name.includes('anonymous') && item.closure !== true) {
+        return count + 1
+      }
+
+      return count
+    }, 0)
+  }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
-    const scopeName = getScopeName(highlightStack)
+
+    const anonCount = this.getAnonCount()
+
+    const scopeName = getScopeName(highlightStack, anonCount)
 
     this.highlightCode(highlightStack)
 
@@ -301,14 +389,14 @@ class App extends Component {
 
     if (createNewExecutionContext(this.previousHighlight, highlighted)) {
       this.newExecutionContext({
-        name: getCalleeName(this.previousHighlight.node.callee),
+        name: getCalleeName(this.previousHighlight.node.callee, anonCount + 1),
         scope: highlighted.scope,
         thisExpression: highlighted.thisExpression,
       })
     }
 
     if (endExecutionContext(highlighted)) {
-      this.handleEndExecutionContext(getCalleeName(highlighted.node.callee))
+      this.handleEndExecutionContext(getCalleeName(highlighted.node.callee, anonCount))
     }
 
     this.handleNewVariable(
@@ -339,16 +427,35 @@ class App extends Component {
       }
     }
   }
+  handleClear = (e, clearCode = true) => {
+    this.setState(({ code }) => ({
+      code: clearCode === true ? '' : code,
+      highlighted: {},
+      scopes: {},
+      stack: [],
+    }))
+
+    this.myInterpreter = getInterpreter(this.state.code)
+    this.chosenColors = []
+    this.markers = []
+    this.previousHighlight = { node: { type: null } }
+    this.createdExecutionContexts = {}
+    this.closuresToCreate = {}
+  }
   render() {
-    const { code, highlighted, stack, scopes } = this.state
+    const { code, highlighted, stack, scopes, running } = this.state
 
     return (
       <Container>
         <Body>
           <div>
             <ButtonPanel
-              handleStep={this.handleStep}
-              handleRun={this.handleRun}
+              operation={highlighted.type || 'NA'}
+              step={this.handleStep}
+              running={running}
+              run={this.handleRun}
+              clear={this.handleClear}
+              pause={this.handlePause}
             />
             <CodeMirror
               ref={(cm) => this.cm = cm}
@@ -359,14 +466,15 @@ class App extends Component {
                 lineNumbers: true,
               }}
               onBeforeChange={(editor, data, code) => {
-                this.setState({code})
-                this.myInterpreter = getInterpreter(code)
+                if (code === '') {
+                  this.handleClear()
+                } else {
+                  this.setState({code})
+                  this.myInterpreter = getInterpreter(code)
+                }
               }}
-              onFocus={() => {
-                this.setState({
-                  scopes: {},
-                  stack: []
-                })
+              onPaste={() => {
+                this.handleClear(false)
               }}
             />
           </div>
