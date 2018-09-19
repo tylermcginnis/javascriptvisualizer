@@ -1,6 +1,7 @@
 html, body, #root {
   height: 100%;
   width: 100%;
+  overflow: scroll;
 }
 
 body {
@@ -10,7 +11,7 @@ body {
 }
 
 .react-codemirror2 {
-  height: 95%;
+  height: 92%;
   width: 100%;
 }
 

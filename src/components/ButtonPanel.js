@@ -86,7 +86,7 @@ export default function ButtonPanel ({ onStep, step, run, clear, operation, runn
           <p>Run Speed</p>
           <Slider
             style={{width: 150, marginRight: 20}}
-            min={1}
+            min={0}
             max={10}
             step={1}
             defaultValue={5}
@@ -97,7 +97,7 @@ export default function ButtonPanel ({ onStep, step, run, clear, operation, runn
               backgroundColor: '#C3392A'
             }}
             marks={{
-              1: 'Slow',
+              0: 'Slow',
               5: 'Fast',
               10: 'Faster',
             }}

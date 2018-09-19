@@ -55,10 +55,12 @@ const Body = styled.div`
   display: flex;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 
   > * {
     width: 50% !important;
     height: 100% !important;
+    overflow: scroll;
   }
 `
 
@@ -137,16 +139,17 @@ class App extends Component {
   }
   changeRunSpeed =(speed) => {
     const speedMap = {
-      1: 2000,
-      2: 1800,
-      3: 1400,
-      4: 1200,
+      0: 2000,
+      1: 1800,
+      2: 1600,
+      3: 1200,
+      4: 1000,
       5: 800,
-      6: 700,
-      7: 600,
-      8: 500,
-      9: 400,
-      10: 200,
+      6: 600,
+      7: 400,
+      8: 300,
+      9: 200,
+      10: 100,
     }
 
     this.setState({
@@ -409,7 +412,7 @@ class App extends Component {
       }
     }
   }
-  handleClear = (e, clearCode = true) => {
+  handleClear = (clearCode = true) => {
     this.setState(({ code }) => ({
       code: clearCode === true ? '' : code,
       highlighted: {},
@@ -437,7 +440,7 @@ class App extends Component {
               step={this.handleStep}
               running={running}
               run={this.handleRun}
-              clear={this.handleClear}
+              clear={(e) => this.handleClear(true)}
               pause={this.handlePause}
               disabled={disableButtons}
               onStep={this.changeRunSpeed}
@@ -449,10 +452,11 @@ class App extends Component {
                 mode: 'javascript',
                 theme: 'material',
                 lineNumbers: true,
+                lineWrapping: true,
               }}
               onBeforeChange={(editor, data, code) => {
                 if (code === '') {
-                  this.handleClear()
+                  this.handleClear(true)
                 } else {
                   this.setState({code})
                   this.myInterpreter = getInterpreter(code)

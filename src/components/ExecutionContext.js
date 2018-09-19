@@ -9,8 +9,8 @@ const colors = {
 }
 
 const ExecutionContextStyles = styled.div`
-  padding: 10px;
-  margin: ${({ isGlobal }) => isGlobal ? '0px' : '10px'};
+  padding: 15px;
+  margin: ${({ isGlobal }) => isGlobal ? '0px' : '25px'};
   border-radius: ${({ isGlobal }) => isGlobal ? '0px' : '5px'};
   background: ${({ background }) => background};
   color: ${({ color }) => color};
@@ -24,16 +24,18 @@ const ExecutionContextStyles = styled.div`
 const VariableEnvironment = styled.ul`
   font-size: 24px;
   list-style-type: none;
+  padding-left: 0;
 `
 
 const Variable = styled.li`
   display: table;
-  margin: 10px;
+  margin: 15px;
   padding: 10px;
   border-radius: 5px;
   font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
   color: ${colors.white};
   background: ${({ background }) => background};
+  margin-left: 0;
 `
 
 const Identifier = styled.span`
@@ -42,6 +44,32 @@ const Identifier = styled.span`
 
 const Value = styled.span`
   color: ${({ color }) => color}
+`
+const Scope = styled.h2`
+  font-size: 28px;
+  font-weight: 300
+  text-decoration: underline;
+
+  > b {
+    font-weight: 600
+  }
+`
+
+const Phase = styled.div`
+  display: table;
+  margin: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+  color: ${colors.white};
+  background: rgba(255, 255, 255, 0.62);
+  margin-left: 0;
+  color: #162b35;
+  font-size: 20px;
+
+  > b {
+
+  }
 `
 
 class ExecutionContext extends Component {
@@ -59,14 +87,14 @@ class ExecutionContext extends Component {
     const { context, closure } = this.props
 
     if (closure === true) {
-      return 'Closure Scope'
+      return <Scope><b>Closure</b> Scope</Scope>
     }
 
     if (context === 'Global') {
-      return 'Global Scope'
+      return <Scope><b>Global</b> Scope</Scope>
     }
 
-    return context + (context.charAt(context.length - 1) === 's' ? `' Execution Context` : `'s Execution Context`)
+    return <Scope><b>{context}</b> {context.charAt(context.length - 1) === 's' ? `' Execution Context` : `'s Execution Context`}</Scope>
   }
   render() {
     const { context, getColor, scopes, remainingStack, phase, closure } = this.props
@@ -74,8 +102,8 @@ class ExecutionContext extends Component {
 
     return (
       <ExecutionContextStyles background={this.state.color} isGlobal={context ==='Global'}>
-        <h1>{this.getHeader()}</h1>
-        {closure === true ? null : <pre>{phase} Phase</pre>}
+        {this.getHeader()}
+        {closure === true ? null : <Phase>Phase: <b>{phase}</b></Phase>}
         <VariableEnvironment>
           {Object.keys(variables).map((identifier, index) => {
             return (
