@@ -20,7 +20,7 @@ import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/addon/selection/mark-selection.js'
 import ExecutionContext from './ExecutionContext'
 import Welcome from './Welcome'
-import Prompt from './Prompt'
+import ButtonPanel from './ButtonPanel'
 
 /*
   Todos
@@ -62,67 +62,6 @@ const Body = styled.div`
   }
 `
 
-const ButtonPanelContainer = styled.div`
-  background: #333333;
-  height: 8%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-`
-
-const Buttons = styled.div`
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  align-self: flex-start;
-  height: 65%;
-
-  > button {
-    border: none;
-    background: none;
-    color: #919191;
-    font-size: 20px;
-  }
-
-  > button:hover {
-    color: #fff;
-    cursor: pointer;
-  }
-`
-
-const Status = styled.div`
-  background: #dfe1e9;
-  height: 35%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 300
-  font-size: 14px;
-
-  > span {
-    font-weight: 500;
-    margin-left: 10px;
-  }
-`
-
-function ButtonPanel ({ step, run, clear, operation, running, pause }) {
-  return (
-    <ButtonPanelContainer>
-      <Buttons>
-        <button onClick={step}>Step</button>
-        {running === true
-          ? <button onClick={pause}>Pause</button>
-          : <button onClick={run}>Run</button>}
-        <button onClick={clear}>Clear</button>
-        <button>Slider</button>
-      </Buttons>
-      <Status>
-        Current Operation: <span>{operation}</span>
-      </Status>
-    </ButtonPanelContainer>
-  )
-}
-
 function isFunction (type) {
   return type === 'FunctionDeclaration' || type === 'FunctionExpression'
 }
@@ -134,6 +73,8 @@ class App extends Component {
     scopes: {},
     stack: [],
     running: false,
+    disableButtons: false,
+    runningSpeed: 800
   }
   myInterpreter = getInterpreter('')
   chosenColors = []
@@ -171,7 +112,7 @@ class App extends Component {
       )
     }
   }
-  handleRun = (e, speed = 1000) => {
+  handleRun = (e) => {
     this.setState({
       running: true
     })
@@ -185,7 +126,7 @@ class App extends Component {
       }
 
       this.handleStep()
-    }, speed)
+    }, this.state.runningSpeed)
   }
   handlePause = () => {
     this.setState({
@@ -193,6 +134,39 @@ class App extends Component {
     })
 
     window.clearInterval(this.runInterval)
+  }
+  changeRunSpeed =(speed) => {
+    const speedMap = {
+      1: 2000,
+      2: 1800,
+      3: 1400,
+      4: 1200,
+      5: 800,
+      6: 700,
+      7: 600,
+      8: 500,
+      9: 400,
+      10: 200,
+    }
+
+    this.setState({
+      runningSpeed: speedMap[speed]
+    })
+
+    if (this.state.running === true) {
+      window.clearInterval(this.runInterval)
+
+      this.runInterval = window.setInterval(() => {
+        const state = this.myInterpreter.stateStack[0]
+
+        if (state.done === true) {
+          this.clearMarkers()
+          return window.clearInterval(this.runInterval)
+        }
+
+        this.handleStep()
+      }, speedMap[speed])
+    }
   }
   handleNoVarDeclaration = ({ left, right, }) => {
     const identifier = left.name
@@ -244,7 +218,6 @@ class App extends Component {
   }
   updateScope = (scope, scopeName) => {
     const globalsToIgnore = getGlobalsToIgnore()
-    var that = this
     // console.log('Scope', scope)
     // console.log('scopeName', scopeName)
 
@@ -420,10 +393,19 @@ class App extends Component {
 
     try {
       var ok = this.myInterpreter.step()
+
+      console.log(this.myInterpreter)
     } finally {
       if (!ok) {
         // No more code to step through
         this.markers.forEach((m) => m.clear())
+        this.setState(({ stack }) => ({
+          stack: stack.filter((s) => s.closure !== true),
+          disableButtons: true,
+          highlighted: {
+            type: 'Finished'
+          }
+        }))
       }
     }
   }
@@ -433,6 +415,7 @@ class App extends Component {
       highlighted: {},
       scopes: {},
       stack: [],
+      disableButtons: false,
     }))
 
     this.myInterpreter = getInterpreter(this.state.code)
@@ -443,7 +426,7 @@ class App extends Component {
     this.closuresToCreate = {}
   }
   render() {
-    const { code, highlighted, stack, scopes, running } = this.state
+    const { code, highlighted, stack, scopes, running, disableButtons } = this.state
 
     return (
       <Container>
@@ -456,6 +439,8 @@ class App extends Component {
               run={this.handleRun}
               clear={this.handleClear}
               pause={this.handlePause}
+              disabled={disableButtons}
+              onStep={this.changeRunSpeed}
             />
             <CodeMirror
               ref={(cm) => this.cm = cm}

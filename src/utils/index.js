@@ -5,7 +5,8 @@ export function getFlatColors () {
     flatPink: '#f2a2e8',
     flatGreen: '#baed91',
     flatYellow: '#faf884',
-    flatBlue: '#b2cefe'
+    flatBlue: '#b2cefe',
+    flatPurple: '#E0BBE4',
   }
 }
 
