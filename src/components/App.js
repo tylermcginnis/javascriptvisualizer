@@ -281,6 +281,25 @@ class App extends Component {
       return count
     }, 0)
   }
+  handleClear = (clearCode = true) => {
+    this.setState(({ code }) => ({
+      code: clearCode === true ? '' : code,
+      currentOperation: null,
+      scopes: {},
+      stack: [],
+      disableButtons: false,
+    }))
+
+    this.myInterpreter = getInterpreter(this.state.code)
+    this.chosenColors = []
+    this.markers = []
+    this.previousHighlight = { node: { type: null } }
+    this.createdExecutionContexts = {}
+    this.closuresToCreate = {}
+  }
+  selectCodeSnippet = (type) => {
+    console.log('AY', type) // todo
+  }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
     const anonCount = this.getAnonCount() // todo
@@ -311,7 +330,6 @@ class App extends Component {
       this.handleEndExecutionContext(scopeName)
     }
 
-    // todo Dont' call this every time.
     this.updateScope(
       this.myInterpreter.getScope(),
       scopeName,
@@ -338,25 +356,6 @@ class App extends Component {
         }))
       }
     }
-  }
-  handleClear = (clearCode = true) => {
-    this.setState(({ code }) => ({
-      code: clearCode === true ? '' : code,
-      currentOperation: null,
-      scopes: {},
-      stack: [],
-      disableButtons: false,
-    }))
-
-    this.myInterpreter = getInterpreter(this.state.code)
-    this.chosenColors = []
-    this.markers = []
-    this.previousHighlight = { node: { type: null } }
-    this.createdExecutionContexts = {}
-    this.closuresToCreate = {}
-  }
-  selectCodeSnipet = (type) => {
-    console.log('AY', type) // todo
   }
   render() {
     const { code, currentOperation, stack, scopes, running, disableButtons } = this.state
@@ -398,7 +397,7 @@ class App extends Component {
             />
           </div>
           {stack.length === 0
-            ? <Welcome selectCodeSnipet={this.selectCodeSnipet} />
+            ? <Welcome selectCodeSnippet={this.selectCodeSnippet} />
             : <ExecutionContext
                 context={stack[0].name}
                 phase={stack[0].phase}

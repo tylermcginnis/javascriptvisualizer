@@ -106,7 +106,7 @@ const MobileDisclosure = styled.div`
   }
 `
 
-export default function Welcome ({ selectCodeSnipet }) {
+export default function Welcome ({ selectCodeSnippet }) {
   return (
     <div style={{position: 'relative'}}>
     <Container>
@@ -123,17 +123,17 @@ export default function Welcome ({ selectCodeSnipet }) {
         Here are some of our favorite code snippets to visualize
         <InstructionItem
           selectable
-          onClick={() => selectCodeSnipet('closures')}>
+          onClick={() => selectCodeSnippet('closures')}>
             Closures
         </InstructionItem>
         <InstructionItem
           selectable
-          onClick={() => selectCodeSnipet('scope')}>
+          onClick={() => selectCodeSnippet('scope')}>
             Scope Chain
         </InstructionItem>
         <InstructionItem
           selectable
-          onClick={() => selectCodeSnipet('bubble')}>
+          onClick={() => selectCodeSnippet('bubble')}>
             Bubble Sort
         </InstructionItem>
       </Instructions>
