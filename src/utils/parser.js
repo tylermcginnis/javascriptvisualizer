@@ -118,7 +118,7 @@ export function argumentsToString (args, isArray = false, includeLength = true) 
   const length = Object.keys(args).length
 
   if (length === 0) {
-    return includeLength === true ? '{ length: 0 }' : ''
+    return includeLength === true ? '{ length: 0 }' : '{}'
   }
 
   let str = isArray === true
@@ -141,6 +141,10 @@ export function argumentsToString (args, isArray = false, includeLength = true) 
 }
 
 export function formatValue (type, init) {
+  if (get(init, 'properties.EvalError')) {
+    return 'window'
+  }
+
   if (type === 'FunctionExpression') {
     return 'fn()'
   } else if (type === 'ArrayExpression') {
@@ -150,16 +154,14 @@ export function formatValue (type, init) {
   } else if (type === 'Arguments') {
     return argumentsToString(init)
   } else if (type === 'thisExpression') {
-    return init.properties.EvalError && init.properties.NaN
-      ? 'window'
-      : argumentsToString(init.properties, false, false)
+    return argumentsToString(init.properties, false, false)
   } else {
     return init.value
   }
 }
 
 export function createNewExecutionContext (prev, current) {
-  if (prev.type === 'CallExpression') {
+  if (prev.type === 'CallExpression' || prev.type === 'NewExpression') {
     if (current.type === 'BlockStatement') {
       if (get(prev, 'callee.object.type') === 'ArrayExpression') {
         return false
@@ -182,18 +184,24 @@ export function getScopeName (stack, anonCount) {
   for (let i = stack.length - 1; i >= 0; i--) {
     const pancake = stack[i]
 
-    if (pancake.node.type === 'MemberExpression') {
-      // Not sure if fine.. todo
-      return pancake.node.property.name
-    }
+    // if (pancake.node.type === 'MemberExpression') {
+    //   I had this in here. Not sure why.
+    //   return pancake.node.property.name
+    // }
 
-    if (pancake.func_) {
+    if (pancake.func_ && pancake.func_.node) {
       if (pancake.node.callee.type === 'MemberExpression') {
         return pancake.node.callee.property.name
       }
 
+      console.log('pancake', pancake)
+
       const id = pancake.func_.node.id
       return id ? id.name : 'anon' // todo
+    }
+
+    if (pancake.node && pancake.node.callee) {
+      return pancake.node.callee.name
     }
   }
 

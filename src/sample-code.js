@@ -287,22 +287,18 @@ counter.value()
 
 
 
-
-
-
-
-
-
-
-
-var person = {
-  name: 'Tyler',
-  age: 29,
-  sayName: function () {
-    console.log(this.name)
+function Person (name, age) {
+  this.waka = function () {
+    var woo = 'lololo'
   }
+  this.nameThis = name
+  this.age = age
 }
 
-person.name = 'Joe'
+Person.prototype.sayName = function () {
+  alert(this.name)
+}
 
-person.sayName()
+var me = new Person('Tyler', 28)
+
+me.sayName()

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
+import get from 'lodash.get'
 import {
   getInterpreter,
   formatValue,
@@ -9,9 +10,10 @@ import {
   getFirstStepState,
   argToString,
   getGlobalsToIgnore,
+  objectToString,
 } from '../utils/parser'
 import { formatCharLoc } from '../utils/editor'
-import { getFlatColors, getRandomElement } from '../utils/index'
+import { getFlatColors, getRandomElement, addQuotesToKeys, removeQuotesFromKeys } from '../utils/index'
 import { Controlled as CodeMirror } from 'react-codemirror2'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/material.css'
@@ -20,6 +22,7 @@ import 'codemirror/addon/selection/mark-selection.js'
 import ExecutionContext from './ExecutionContext'
 import Welcome from './Welcome'
 import ButtonPanel from './ButtonPanel'
+import omit from 'lodash.omit'
 
 /*
   Todos
@@ -181,14 +184,36 @@ class App extends Component {
       }, speedMap[speed])
     }
   }
-  updateScope = (scope, scopeName) => {
+  updateScope = (scope, scopeName, forThis) => {
     const globalsToIgnore = getGlobalsToIgnore()
 
     const stackItem = this.state.stack.find((s) => s.name === scopeName)
-    // check on this. todo
     if (stackItem && this.closuresToCreate[scopeName] === true
-    ) {
+    && !forThis) {
       return true
+    }
+
+    if (forThis) {
+      const { key, identifier, value } = forThis
+
+      return this.setState(({ scopes }) => {
+        const oldThis = JSON.parse(addQuotesToKeys(scopes[scopeName].this))
+
+        const newThis = removeQuotesFromKeys(JSON.stringify({
+          ...oldThis,
+          [key]: identifier ? scope.properties[identifier].data : value
+        }, null, 2))
+
+        return {
+          scopes: {
+            ...scopes,
+            [scopeName]: {
+              ...scopes[scopeName],
+              this: newThis
+            }
+          }
+        }
+      })
     }
 
     const scopeArgs = Object.keys(scope.properties)
@@ -324,6 +349,7 @@ class App extends Component {
     }
 
     if (createNewExecutionContext(this.previousHighlight.node, highlighted.node)) {
+
       this.newExecutionContext({
         name: scopeName,
         scope,
@@ -338,6 +364,17 @@ class App extends Component {
     this.updateScope(
       scope,
       scopeName,
+      get(highlighted, 'node.type') === 'AssignmentExpression'
+        ? get(highlighted, 'node.left.object.type') === 'ThisExpression'
+          ? {
+              key: get(highlighted, 'node.left.property.name', null),
+              identifier: get(highlighted, 'node.right.name', null),
+              value: get(highlighted, 'node.right.type') === 'FunctionExpression'
+                ? "fn()"
+                : get(highlighted, 'node.right.value', null),
+            }
+          : null
+        : null
     )
 
     this.checkClosure(

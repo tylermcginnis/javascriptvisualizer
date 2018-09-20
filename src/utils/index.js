@@ -13,3 +13,11 @@ export function getFlatColors () {
 export function getRandomElement(arr) {
   return arr[~~(arr.length * Math.random())];
 }
+
+export function removeQuotesFromKeys (str) {
+  return str.replace(/"([^(")"]+)":/g,"$1:")
+}
+
+export function addQuotesToKeys (str) {
+  return str.replace(/([{,])(\s*)([A-Za-z0-9_-]+?)\s*:/g, '$1"$3":')
+}
