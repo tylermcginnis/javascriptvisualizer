@@ -181,38 +181,31 @@ class App extends Component {
     const globalsToIgnore = getGlobalsToIgnore()
 
     const stackItem = this.state.stack.find((s) => s.name === scopeName)
+    // check on this. todo
     if (stackItem && this.closuresToCreate[scopeName] === true
     ) {
-      return stackItem.closure === true
+      return true
     }
 
-    console.log('Scope', scope)
+    const scopeArgs = Object.keys(scope.properties)
+      .filter((p) => p !== 'arguments')
+      .filter((p) => !globalsToIgnore[p])
+      .reduce((result, key) => {
+        result[key] = argToString(scope.properties[key], key, true)
+        return result
+      }, {})
 
-    if (scope) {
-      const scopeArgs = Object.keys(scope.properties)
-        .filter((p) => p !== 'arguments')
-        .filter((p) => !globalsToIgnore[p])
-        .reduce((result, key) => {
-          result[key] = argToString(scope.properties[key], key, true)
-          return result
-        }, {})
-
-      console.log('SCOPEARGS', scopeArgs)
-
-      this.setState(({ scopes }) => ({
-        scopes: {
-          ...scopes,
-          [scopeName]: {
-            ...scopes[scopeName],
-            ...scopeArgs,
-          }
+    this.setState(({ scopes }) => ({
+      scopes: {
+        ...scopes,
+        [scopeName]: {
+          ...scopes[scopeName],
+          ...scopeArgs,
         }
-      }))
-    }
+      }
+    }))
   }
   newExecutionContext = ({ name, scope, thisExpression }) => {
-    if (!scope) return
-
     this.setState(({ stack, scopes }) => {
       return {
         stack: stack.concat([{
@@ -231,7 +224,6 @@ class App extends Component {
     })
 
     this.createdExecutionContexts[name] = true
-
     this.updateScope(scope, name)
   }
   handleEndExecutionContext = (name) => {
@@ -291,11 +283,8 @@ class App extends Component {
   }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
-    const anonCount = this.getAnonCount()
+    const anonCount = this.getAnonCount() // todo
     const scopeName = getScopeName(highlightStack, anonCount)
-
-    console.log('SCOPENAME', scopeName)
-
     const highlighted = highlightStack[highlightStack.length - 1]
 
     this.highlightCode(highlighted.node)
@@ -310,7 +299,7 @@ class App extends Component {
       this.createdExecutionContexts.Global = true
     }
 
-    if (createNewExecutionContext(this.previousHighlight, highlighted)) {
+    if (createNewExecutionContext(this.previousHighlight.node, highlighted.node)) {
       this.newExecutionContext({
         name: scopeName,
         scope: highlighted.scope,

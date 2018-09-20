@@ -164,16 +164,13 @@ const nativeMethods = {
   log: true,
 }
 
-export function createNewExecutionContext (previousHighlight, currentHighlight) {
-  const prevType = previousHighlight.node.type
-  const currentType = currentHighlight.node.type
-
-  if (prevType === 'CallExpression') {
-    if (currentType === 'BlockStatement') {
+export function createNewExecutionContext (prev, current) {
+  if (prev.type === 'CallExpression') {
+    if (current.type === 'BlockStatement') {
       if (
-        previousHighlight.node.callee &&
-        previousHighlight.node.callee.property &&
-        nativeMethods[previousHighlight.node.callee.property.name]
+        prev.callee &&
+        prev.callee.property &&
+        nativeMethods[prev.callee.property.name]
       ) {
         return false
       }
@@ -181,22 +178,18 @@ export function createNewExecutionContext (previousHighlight, currentHighlight) 
       return true
     }
 
-    if (currentType === 'MemberExpression') {
-      return nativeMethods[currentHighlight.node.property.name] === true ? false : true
+    if (current.type === 'MemberExpression') { // Look into this. todo
+      return nativeMethods[current.property.name] === true ? false : true
     }
   }
 
   return false
 }
 
-export function endExecutionContext (currentHighlight) {
-  if (currentHighlight.node.type === 'CallExpression') {
-    if (currentHighlight.doneCallee_ === true && currentHighlight.doneExec_ === true) {
-      return true
-    }
-  }
-
-  return false
+export function endExecutionContext ({ node, doneCallee_, doneExec_ }) {
+  return node.type === 'CallExpression' &&
+    doneCallee_ === true &&
+    doneExec_ === true
 }
 
 export function getScopeName (stack, anonCount) {
