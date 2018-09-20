@@ -199,25 +199,11 @@ export function endExecutionContext (currentHighlight) {
   return false
 }
 
-export function getCalleeName (callee, anonCount) {
-  if (callee.name) {
-    return callee.name
-  } else if (callee.property) {
-    return callee.property.name
-  } else if (callee.id) {
-    return callee.id.name
-  } else {
-    // todo. More than one anon fn breaks stuff
-    // https://github.com/tylermcginnis/noname/issues/1
-
-    return `anonymous_${anonCount}`
-  }
-}
-
 export function getScopeName (stack, anonCount) {
   for (let i = stack.length - 1; i >= 0; i--) {
-    if (stack[i].node.callee) {
-      return getCalleeName(stack[i].node.callee, anonCount)
+    if (stack[i].func_) {
+      const id = stack[i].func_.node.id
+      return id ? id.name : 'anon' // todo
     }
   }
 

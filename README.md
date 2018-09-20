@@ -5,4 +5,4 @@
 
 #### A tool for visualizing Execution Context, Hoisting, Closures, and Scopes in JavaScript. Part of TylerMcGinnis.com's [Advanced JavaScript](https://tylermcginnis.com/courses/advanced-javascript/) course.
 
-- [Tyler](https://twitter.com/tylermcginnis)
+[Tyler](https://twitter.com/tylermcginnis)

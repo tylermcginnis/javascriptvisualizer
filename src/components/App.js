@@ -5,7 +5,6 @@ import {
   formatValue,
   createNewExecutionContext,
   endExecutionContext,
-  getCalleeName,
   getScopeName,
   getFirstStepState,
   argToString,
@@ -107,22 +106,19 @@ class App extends Component {
 
     return flatColors[randomColor]
   }
-  highlightCode = (stack) => {
-    if (stack.length) {
-      const node = stack[stack.length - 1].node
-      const start = node.start
-      const end = node.end
+  highlightCode = (node) => {
+    const start = node.start
+    const end = node.end
 
-      this.clearMarkers()
+    this.clearMarkers()
 
-      this.markers.push(
-        this.cm.editor.doc.markText(
-          formatCharLoc(this.state.code, start),
-          formatCharLoc(this.state.code, end),
-          {className: "editor-highlighted-background"}
-        )
+    this.markers.push(
+      this.cm.editor.doc.markText(
+        formatCharLoc(this.state.code, start),
+        formatCharLoc(this.state.code, end),
+        {className: "editor-highlighted-background"}
       )
-    }
+    )
   }
   handleRun = (e) => {
     this.setState({
@@ -181,62 +177,16 @@ class App extends Component {
       }, speedMap[speed])
     }
   }
-  handleNoVarDeclaration = ({ left, right, }) => {
-    const identifier = left.name
-    const value = formatValue(right.type, right)
-
-    this.setState(({ scopes }) => ({
-      scopes: {
-        ...scopes,
-        'Global': {
-          ...scopes.Global,
-          [identifier]: value,
-        }
-      }
-    }))
-  }
-  handleVariableDeclaration = (scopeName, node) => {
-    if (node.declarations.length > 1) {
-      console.log('Check this')
-    }
-
-    const { init, id } = node.declarations[0]
-    const identifier = id.name
-
-    const value = formatValue(init.type, init)
-
-    this.setState(({ scopes }) => ({
-      scopes: {
-        ...scopes,
-        [scopeName]: {
-          ...scopes[scopeName],
-          [identifier]: value,
-        }
-      }
-    }))
-  }
-  handleFunctionDeclaration = (scopeName, node) => {
-    const { id } = node
-    const identifier = id.name
-
-    this.setState(({ scopes }) => ({
-      scopes: {
-        ...scopes,
-        [scopeName]: {
-          ...scopes[scopeName],
-          [identifier]: 'fn()'
-        }
-      }
-    }))
-  }
   updateScope = (scope, scopeName) => {
     const globalsToIgnore = getGlobalsToIgnore()
 
     const stackItem = this.state.stack.find((s) => s.name === scopeName)
-    if (stackItem || this.closuresToCreate[scopeName] === true
+    if (stackItem && this.closuresToCreate[scopeName] === true
     ) {
       return stackItem.closure === true
     }
+
+    console.log('Scope', scope)
 
     if (scope) {
       const scopeArgs = Object.keys(scope.properties)
@@ -246,6 +196,8 @@ class App extends Component {
           result[key] = argToString(scope.properties[key], key, true)
           return result
         }, {})
+
+      console.log('SCOPEARGS', scopeArgs)
 
       this.setState(({ scopes }) => ({
         scopes: {
@@ -305,15 +257,6 @@ class App extends Component {
       })
     }))
   }
-  handleNewVariable = (node, scopeName) => {
-    if (node.operator === '=') {
-      this.handleNoVarDeclaration(node)
-    } else if (node.type === 'VariableDeclaration') {
-      this.handleVariableDeclaration(scopeName, node)
-    } else if (node.type === 'FunctionDeclaration') {
-      this.handleFunctionDeclaration(scopeName, node)
-    }
-  }
   checkClosure = (stackLength, highlighted, scopeName) => {
     // todo figure out a way to only create a closure if there's a reference
     // to the fn still
@@ -348,15 +291,15 @@ class App extends Component {
   }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
-
     const anonCount = this.getAnonCount()
-
     const scopeName = getScopeName(highlightStack, anonCount)
 
-    this.highlightCode(highlightStack)
+    console.log('SCOPENAME', scopeName)
 
     const highlighted = highlightStack[highlightStack.length - 1]
-    this.setState({highlighted: highlighted.node})
+
+    this.highlightCode(highlighted.node)
+    this.setState({currentOperation: highlighted.node.type})
 
     if (this.createdExecutionContexts[scopeName] === true) {
       this.toExecutionPhase(scopeName)
@@ -369,20 +312,15 @@ class App extends Component {
 
     if (createNewExecutionContext(this.previousHighlight, highlighted)) {
       this.newExecutionContext({
-        name: getCalleeName(this.previousHighlight.node.callee, anonCount + 1),
+        name: scopeName,
         scope: highlighted.scope,
         thisExpression: highlighted.thisExpression,
       })
     }
 
     if (endExecutionContext(highlighted)) {
-      this.handleEndExecutionContext(getCalleeName(highlighted.node.callee, anonCount))
+      this.handleEndExecutionContext(scopeName)
     }
-
-    this.handleNewVariable(
-      highlighted.node,
-      scopeName,
-    )
 
     // todo Dont' call this every time.
     this.updateScope(
@@ -407,9 +345,7 @@ class App extends Component {
         this.setState(({ stack }) => ({
           stack: stack.filter((s) => s.closure !== true),
           disableButtons: true,
-          highlighted: {
-            type: 'Finished'
-          }
+          currentOperation: 'Finished'
         }))
       }
     }
@@ -417,7 +353,7 @@ class App extends Component {
   handleClear = (clearCode = true) => {
     this.setState(({ code }) => ({
       code: clearCode === true ? '' : code,
-      highlighted: {},
+      currentOperation: null,
       scopes: {},
       stack: [],
       disableButtons: false,
@@ -434,14 +370,14 @@ class App extends Component {
     console.log('AY', type) // todo
   }
   render() {
-    const { code, highlighted, stack, scopes, running, disableButtons } = this.state
+    const { code, currentOperation, stack, scopes, running, disableButtons } = this.state
 
     return (
       <Container>
         <Body>
           <div>
             <ButtonPanel
-              operation={highlighted.type || 'NA'}
+              currentOperation={currentOperation}
               step={this.handleStep}
               running={running}
               run={this.handleRun}

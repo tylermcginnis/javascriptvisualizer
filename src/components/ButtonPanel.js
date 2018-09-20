@@ -72,7 +72,7 @@ const Status = styled.div`
   }
 `
 
-export default function ButtonPanel ({ onStep, step, run, clear, operation, running, pause, disabled }) {
+export default function ButtonPanel ({ onStep, step, run, clear, currentOperation = 'NA', running, pause, disabled }) {
   return (
     <ButtonPanelContainer>
       <Top>
@@ -106,7 +106,7 @@ export default function ButtonPanel ({ onStep, step, run, clear, operation, runn
         </SliderContainer>
       </Top>
       <Status>
-        Current Operation: <span>{operation}</span>
+        Current Operation: <span>{currentOperation}</span>
       </Status>
     </ButtonPanelContainer>
   )
