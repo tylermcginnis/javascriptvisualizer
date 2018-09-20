@@ -158,10 +158,6 @@ export function formatValue (type, init) {
   }
 }
 
-const nativeObjects = {
-  console: true,
-}
-
 export function createNewExecutionContext (prev, current) {
   if (prev.type === 'CallExpression') {
     if (current.type === 'BlockStatement') {
@@ -170,14 +166,6 @@ export function createNewExecutionContext (prev, current) {
       }
 
       return true
-    }
-
-    if (current.type === 'MemberExpression') { // Look into this. todo
-      if (current.object.type === 'ArrayExpression') {
-        return false
-      }
-
-      return nativeObjects[current.object.name] === true ? false : true
     }
   }
 

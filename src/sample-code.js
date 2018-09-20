@@ -283,3 +283,26 @@ counter.value()
     var age = 28;
   })();
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+var person = {
+  name: 'Tyler',
+  age: 29,
+  sayName: function () {
+    console.log(this.name)
+  }
+}
+
+person.name = 'Joe'
+
+person.sayName()

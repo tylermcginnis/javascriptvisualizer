@@ -110,7 +110,7 @@ class App extends Component {
     const start = node.start
     const end = node.end
 
-    if (!start || !end) {
+    if (typeof start === 'undefined' || typeof end === 'undefined') {
       return
     }
 
