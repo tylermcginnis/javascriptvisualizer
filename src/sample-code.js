@@ -223,7 +223,8 @@ var me = new Person('Tyler', 28)
 
 me.sayName()
 
-// Closures
+
+
 function makeAdder(x) {
   return function(y) {
     return x + y;
@@ -232,7 +233,20 @@ function makeAdder(x) {
 
 var add5 = makeAdder(5);
 
-console.log(add5(2));  // 7
+add5(2);
+
+
+var count = 0
+
+function makeAdder(x) {
+  return function(y) {
+    return x + y;
+  };
+}
+
+var add5 = makeAdder(5);
+count += add5(2)
+
 
 
 // closure not working and vars not updating
@@ -254,12 +268,12 @@ var counter = (function() {
   };
 })();
 
-console.log(counter.value()); // logs 0
+counter.value()
 counter.increment();
 counter.increment();
-console.log(counter.value()); // logs 2
+counter.value()
 counter.decrement();
-console.log(counter.value()); // logs 1
+counter.value()
 
 // multiple anon test
 (function () {

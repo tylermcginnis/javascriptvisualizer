@@ -25,13 +25,9 @@ import ButtonPanel from './ButtonPanel'
 /*
   Todos
     closures
-    handleRun speed from UI
     Highlight errors
     Don't crash on errors in code
-    get example code with two greets working
-
-  Stretch
-    Step through code options
+    all repo issues
 */
 
 
@@ -49,6 +45,10 @@ import ButtonPanel from './ButtonPanel'
 const Container = styled.div`
   height: 100%;
   width: 100%;
+
+  @media (max-width: 700px) {
+    height: auto;
+  }
 `
 
 const Body = styled.div`
@@ -61,6 +61,16 @@ const Body = styled.div`
     width: 50% !important;
     height: 100% !important;
     overflow: scroll;
+  }
+
+  @media (max-width: 700px) {
+    flex-direction: column-reverse;
+
+    > * {
+      width: 100% !important;
+      height: auto !important;
+      overflow: auto !important;
+    }
   }
 `
 
@@ -221,16 +231,11 @@ class App extends Component {
   }
   updateScope = (scope, scopeName) => {
     const globalsToIgnore = getGlobalsToIgnore()
-    // console.log('Scope', scope)
-    // console.log('scopeName', scopeName)
 
     const stackItem = this.state.stack.find((s) => s.name === scopeName)
-    if (
-        stackItem &&
-        stackItem.closure === true ||
-        this.closuresToCreate[scopeName] === true
+    if (stackItem || this.closuresToCreate[scopeName] === true
     ) {
-      return
+      return stackItem.closure === true
     }
 
     if (scope) {
@@ -242,7 +247,6 @@ class App extends Component {
           return result
         }, {})
 
-      console.log('ABOUT TO SET NEW SCOPE', scopeName)
       this.setState(({ scopes }) => ({
         scopes: {
           ...scopes,
@@ -396,8 +400,6 @@ class App extends Component {
 
     try {
       var ok = this.myInterpreter.step()
-
-      console.log(this.myInterpreter)
     } finally {
       if (!ok) {
         // No more code to step through
@@ -427,6 +429,9 @@ class App extends Component {
     this.previousHighlight = { node: { type: null } }
     this.createdExecutionContexts = {}
     this.closuresToCreate = {}
+  }
+  selectCodeSnipet = (type) => {
+    console.log('AY', type) // todo
   }
   render() {
     const { code, highlighted, stack, scopes, running, disableButtons } = this.state
@@ -468,7 +473,7 @@ class App extends Component {
             />
           </div>
           {stack.length === 0
-            ? <Welcome />
+            ? <Welcome selectCodeSnipet={this.selectCodeSnipet} />
             : <ExecutionContext
                 context={stack[0].name}
                 phase={stack[0].phase}

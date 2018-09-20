@@ -66,10 +66,6 @@ const Phase = styled.div`
   margin-left: 0;
   color: #162b35;
   font-size: 20px;
-
-  > b {
-
-  }
 `
 
 class ExecutionContext extends Component {

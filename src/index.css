@@ -8,6 +8,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif;
+  color: #222;
 }
 
 .react-codemirror2 {
@@ -16,6 +17,7 @@ body {
 }
 
 .CodeMirror {
+  min-height: 100vh;
   font-size: 24px;
   height: 100% !important;
   width: 100% !important;
