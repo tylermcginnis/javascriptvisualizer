@@ -23,6 +23,7 @@ import ExecutionContext from './ExecutionContext'
 import Welcome from './Welcome'
 import ButtonPanel from './ButtonPanel'
 import omit from 'lodash.omit'
+import snippets from '../utils/snippets'
 
 /*
   Todos
@@ -327,7 +328,12 @@ class App extends Component {
     this.closuresToCreate = {}
   }
   selectCodeSnippet = (type) => {
-    console.log('AY', type) // todo
+    const code = snippets[type]
+    this.setState({
+      code
+    })
+
+    this.myInterpreter = getInterpreter(code)
   }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack

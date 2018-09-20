@@ -128,12 +128,12 @@ export default function Welcome ({ selectCodeSnippet }) {
         </InstructionItem>
         <InstructionItem
           selectable
-          onClick={() => selectCodeSnippet('scope')}>
+          onClick={() => selectCodeSnippet('scopeChain')}>
             Scope Chain
         </InstructionItem>
         <InstructionItem
           selectable
-          onClick={() => selectCodeSnippet('bubble')}>
+          onClick={() => selectCodeSnippet('bubbleSort')}>
             Bubble Sort
         </InstructionItem>
       </Instructions>

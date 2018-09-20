@@ -20,6 +20,8 @@ var fnExpression = function () {
 fnExpression()
 topLevelFn()
 
+
+
 const user = {
   name: 'Tyler',
   age: 27,
@@ -283,22 +285,3 @@ counter.value()
     var age = 28;
   })();
 })();
-
-
-
-
-function Person (name, age) {
-  this.waka = function () {
-    var woo = 'lololo'
-  }
-  this.nameThis = name
-  this.age = age
-}
-
-Person.prototype.sayName = function () {
-  alert(this.name)
-}
-
-var me = new Person('Tyler', 28)
-
-me.sayName()
