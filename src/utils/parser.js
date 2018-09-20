@@ -1,4 +1,5 @@
 import Interpreter from 'js-interpreter';
+import get from 'lodash.get'
 
 const globalToIgnore = {
   "Infinity": true,
@@ -157,21 +158,14 @@ export function formatValue (type, init) {
   }
 }
 
-// These might not be needed?
-const nativeMethods = {
-  charAt: true,
-  filter: true,
-  log: true,
+const nativeObjects = {
+  console: true,
 }
 
 export function createNewExecutionContext (prev, current) {
   if (prev.type === 'CallExpression') {
     if (current.type === 'BlockStatement') {
-      if (
-        prev.callee &&
-        prev.callee.property &&
-        nativeMethods[prev.callee.property.name]
-      ) {
+      if (get(prev, 'callee.object.type') === 'ArrayExpression') {
         return false
       }
 
@@ -179,7 +173,11 @@ export function createNewExecutionContext (prev, current) {
     }
 
     if (current.type === 'MemberExpression') { // Look into this. todo
-      return nativeMethods[current.property.name] === true ? false : true
+      if (current.object.type === 'ArrayExpression') {
+        return false
+      }
+
+      return nativeObjects[current.object.name] === true ? false : true
     }
   }
 
@@ -194,13 +192,24 @@ export function endExecutionContext ({ node, doneCallee_, doneExec_ }) {
 
 export function getScopeName (stack, anonCount) {
   for (let i = stack.length - 1; i >= 0; i--) {
-    if (stack[i].func_) {
-      const id = stack[i].func_.node.id
+    const pancake = stack[i]
+
+    if (pancake.node.type === 'MemberExpression') {
+      // Not sure if fine.. todo
+      return pancake.node.property.name
+    }
+
+    if (pancake.func_) {
+      if (pancake.node.callee.type === 'MemberExpression') {
+        return pancake.node.callee.property.name
+      }
+
+      const id = pancake.func_.node.id
       return id ? id.name : 'anon' // todo
     }
   }
 
-  return 'Global' // needed?
+  return 'Global'
 }
 
 export function getFirstStepState () {

@@ -110,6 +110,10 @@ class App extends Component {
     const start = node.start
     const end = node.end
 
+    if (!start || !end) {
+      return
+    }
+
     this.clearMarkers()
 
     this.markers.push(
@@ -305,6 +309,7 @@ class App extends Component {
     const anonCount = this.getAnonCount() // todo
     const scopeName = getScopeName(highlightStack, anonCount)
     const highlighted = highlightStack[highlightStack.length - 1]
+    const scope = this.myInterpreter.getScope()
 
     this.highlightCode(highlighted.node)
     this.setState({currentOperation: highlighted.node.type})
@@ -321,7 +326,7 @@ class App extends Component {
     if (createNewExecutionContext(this.previousHighlight.node, highlighted.node)) {
       this.newExecutionContext({
         name: scopeName,
-        scope: highlighted.scope,
+        scope,
         thisExpression: highlighted.thisExpression,
       })
     }
@@ -331,7 +336,7 @@ class App extends Component {
     }
 
     this.updateScope(
-      this.myInterpreter.getScope(),
+      scope,
       scopeName,
     )
 
