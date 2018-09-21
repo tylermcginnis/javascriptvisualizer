@@ -1,20 +1,22 @@
-var topLevelVar = 'This is the top level var'
-topLevelVarWithNoDeclaration = 'This is a top var with no decl'
+var topLevelVar = "Since this variable was declared outside of a function, it'll go on the global scope."
 
 function topLevelFn () {
-  varWithoutDeclaration = 'This should be global'
-  var withDec = 'This should be local to the fn'
+  globalVar = 'This variable has no declaration, it should be put on the global scope.'
+  var localVar = "This variable should be local to topLevelFn's scope"
 
   function nestedFn () {
-    var notGlobal = 'This is in nestedFn'
-    nestedVarWithoutDeclaration = 'This should be global too'
+    var anotherLocalVar = "Local to nestedFn's scope."
+    var access = "Because of the scope chain, in this function we still have access to any of the variable declared in topLevelFn or the global scope."
+
+    console.log(localVar)
+    console.log(topLevelVar)
   }
 
   nestedFn()
 }
 
 var fnExpression = function () {
-  var varInFnExpression = 'This is in a function expression'
+  var hoisted = "Did you notice that fnExpression is a function expression? It's declaration is hoisted and set to undefined in the 'creation' phase."
 }
 
 fnExpression()

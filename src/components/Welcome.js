@@ -136,6 +136,11 @@ export default function Welcome ({ selectCodeSnippet }) {
           onClick={() => selectCodeSnippet('bubbleSort')}>
             Bubble Sort
         </InstructionItem>
+        <InstructionItem
+          selectable
+          onClick={() => selectCodeSnippet('pseudoclassical')}>
+            Pseudoclassical Pattern
+        </InstructionItem>
       </Instructions>
     </Container>
     <MobileDisclosure>
