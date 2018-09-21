@@ -10,7 +10,6 @@ import {
   getFirstStepState,
   argToString,
   getGlobalsToIgnore,
-  objectToString,
 } from '../utils/parser'
 import { formatCharLoc } from '../utils/editor'
 import { getFlatColors, getRandomElement, addQuotesToKeys, removeQuotesFromKeys } from '../utils/index'
@@ -22,28 +21,7 @@ import 'codemirror/addon/selection/mark-selection.js'
 import ExecutionContext from './ExecutionContext'
 import Welcome from './Welcome'
 import ButtonPanel from './ButtonPanel'
-import omit from 'lodash.omit'
 import snippets from '../utils/snippets'
-
-/*
-  Todos
-    closures
-    Highlight errors
-    Don't crash on errors in code
-    all repo issues
-*/
-
-
-/*
-  this.myInterpreter.getScope()
-  this.myInterpreter.getValueFromScope('varName')
-
-  this.myInterpreter.getScope() === this.myInterpreter.stateStack[this.myInterpreter.stateStack.length - 1].scope
-
-  Get this -> stack[stack.length - 1].thisExpression.properties
-
-  All methods - Object.getPrototypeOf(this.myInterpreter)
-*/
 
 const Container = styled.div`
   height: 100%;

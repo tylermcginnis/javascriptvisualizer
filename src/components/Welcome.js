@@ -145,7 +145,7 @@ export default function Welcome ({ selectCodeSnippet }) {
     </Container>
     <MobileDisclosure>
       <div>
-        <p><b>This tool was created for our <a href='https://tylermcginnis.com/courses/advanced-javascript/'>Advanced JavaScript course</a>.</b></p>
+        <p><b>This was created for our <a href='https://tylermcginnis.com/courses/advanced-javascript/'>Advanced JavaScript course</a>.</b></p>
         <p>It's Beta AF. I'm working on ES6 support and lots of <a href='https://github.com/tylermcginnis/noname/issues'>bug fixes</a>.</p>
       </div>
       <a href='https://tylermcginnis.com'>
@@ -159,7 +159,7 @@ export default function Welcome ({ selectCodeSnippet }) {
     <DisclosureContainer>
       <Disclosure>
         <div>
-          <p><b>This tool was created for our <a href='https://tylermcginnis.com/courses/advanced-javascript/'>Advanced JavaScript course</a>.</b></p>
+          <p><b>This was created for our <a href='https://tylermcginnis.com/courses/advanced-javascript/'>Advanced JavaScript course</a>.</b></p>
           <p>It's Beta AF. I'm working on ES6 support and lots of <a href='https://github.com/tylermcginnis/noname/issues'>bug fixes</a>.</p>
         </div>
         <a href='https://tylermcginnis.com'>
