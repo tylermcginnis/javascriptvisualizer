@@ -381,11 +381,6 @@ class App extends Component {
 
     this.previousHighlight = highlighted
 
-    const ele = document.getElementById("execution-context")
-    if (ele) {
-      ele.scrollTop = ele.scrollHeight - ele.clientHeight;
-    }
-
     try {
       var ok = this.myInterpreter.step()
     } finally {

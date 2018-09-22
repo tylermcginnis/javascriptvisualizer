@@ -78,6 +78,13 @@ class ExecutionContext extends Component {
         color: '#fff'
       })
     }
+
+    if (prevProps.remainingStack !== this.props.remainingStack) {
+      const ele = document.getElementById("execution-context")
+      if (ele) {
+        ele.scrollTop = ele.scrollHeight - ele.clientHeight;
+      }
+    }
   }
   getHeader = () => {
     const { context, closure } = this.props
