@@ -72,7 +72,7 @@ const Status = styled.div`
   }
 `
 
-export default function ButtonPanel ({ onStep, step, run, clear, currentOperation = 'NA', running, pause, disabled }) {
+export default function ButtonPanel ({ onStep, step, run, clear, currentOperation = 'NA', running, pause, disabled, serialize }) {
   return (
     <ButtonPanelContainer>
       <Top>
@@ -82,6 +82,7 @@ export default function ButtonPanel ({ onStep, step, run, clear, currentOperatio
             ? <button onClick={pause}>Pause</button>
             : <button disabled={disabled} onClick={run}>Run</button>}
           <button onClick={clear}>Clear</button>
+          <button onClick={serialize}>Serialize</button>
         </Buttons>
         <SliderContainer>
           <p>Run Speed</p>

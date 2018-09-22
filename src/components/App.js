@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import get from 'lodash.get'
+import queryString from 'query-string'
 import {
   getInterpreter,
   formatValue,
@@ -75,6 +76,12 @@ class App extends Component {
   previousHighlight = { node: { type: null } }
   createdExecutionContexts = {}
   closuresToCreate = {}
+  componentDidMount() {
+    const { code = '' } = queryString.parse(this.props.location.search)
+    this.setState({code: code})
+
+    this.myInterpreter = getInterpreter(code)
+  }
   clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {
     const flatColors = getFlatColors()
@@ -128,6 +135,28 @@ class App extends Component {
     })
 
     window.clearInterval(this.runInterval)
+  }
+  handleClear = (clearCode = true) => {
+    this.setState(({ code }) => ({
+      code: clearCode === true ? '' : code,
+      currentOperation: null,
+      scopes: {},
+      stack: [],
+      disableButtons: false,
+    }))
+
+    this.myInterpreter = getInterpreter(this.state.code)
+    this.chosenColors = []
+    this.markers = []
+    this.previousHighlight = { node: { type: null } }
+    this.createdExecutionContexts = {}
+    this.closuresToCreate = {}
+    this.props.history.push('/')
+  }
+  handleSerialize = () => {
+    this.props.history.push(
+      '/?' + queryString.stringify({ code: this.state.code})
+    )
   }
   changeRunSpeed =(speed) => {
     const speedMap = {
@@ -289,22 +318,6 @@ class App extends Component {
       return count
     }, 0)
   }
-  handleClear = (clearCode = true) => {
-    this.setState(({ code }) => ({
-      code: clearCode === true ? '' : code,
-      currentOperation: null,
-      scopes: {},
-      stack: [],
-      disableButtons: false,
-    }))
-
-    this.myInterpreter = getInterpreter(this.state.code)
-    this.chosenColors = []
-    this.markers = []
-    this.previousHighlight = { node: { type: null } }
-    this.createdExecutionContexts = {}
-    this.closuresToCreate = {}
-  }
   selectCodeSnippet = (type) => {
     const code = snippets[type]
     this.setState({
@@ -396,6 +409,7 @@ class App extends Component {
               running={running}
               run={this.handleRun}
               clear={(e) => this.handleClear(true)}
+              serialize={this.handleSerialize}
               pause={this.handlePause}
               disabled={disableButtons}
               onStep={this.changeRunSpeed}
