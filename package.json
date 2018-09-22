@@ -8,7 +8,7 @@
     "js-interpreter": "^1.4.6",
     "lodash.get": "^4.4.2",
     "lodash.omit": "^4.5.0",
-    "query-string": "^6.1.0",
+    "query-string": "5",
     "rc-slider": "^8.6.2",
     "react": "^16.5.0",
     "react-codemirror2": "^5.1.0",

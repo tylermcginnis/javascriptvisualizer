@@ -86,18 +86,14 @@ class ExecutionContext extends Component {
       return <Scope><b>Closure</b> Scope</Scope>
     }
 
-    if (context === 'Global') {
-      return <Scope><b>Global</b> Scope</Scope>
-    }
-
-    return <Scope><b>{context}</b> {context.charAt(context.length - 1) === 's' ? `' Execution Context` : `'s Execution Context`}</Scope>
+    return <Scope><b>{context}</b> Execution Context</Scope>
   }
   render() {
     const { context, getColor, scopes, remainingStack, phase, closure } = this.props
     const variables = scopes[context]
 
     return (
-      <ExecutionContextStyles background={this.state.color} isGlobal={context ==='Global'}>
+      <ExecutionContextStyles id='execution-context' background={this.state.color} isGlobal={context ==='Global'}>
         {this.getHeader()}
         {closure === true ? null : <Phase>Phase: <b>{phase}</b></Phase>}
         <VariableEnvironment>

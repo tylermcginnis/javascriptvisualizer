@@ -194,8 +194,6 @@ export function getScopeName (stack, anonCount) {
         return pancake.node.callee.property.name
       }
 
-      console.log('pancake', pancake)
-
       const id = pancake.func_.node.id
       return id ? id.name : 'anon' // todo
     }

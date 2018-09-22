@@ -78,9 +78,8 @@ class App extends Component {
   closuresToCreate = {}
   componentDidMount() {
     const { code = '' } = queryString.parse(this.props.location.search)
-    this.setState({code: code})
-
     this.myInterpreter = getInterpreter(code)
+    this.setState({code})
   }
   clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {
@@ -381,6 +380,11 @@ class App extends Component {
     )
 
     this.previousHighlight = highlighted
+
+    const ele = document.getElementById("execution-context")
+    if (ele) {
+      ele.scrollTop = ele.scrollHeight - ele.clientHeight;
+    }
 
     try {
       var ok = this.myInterpreter.step()
