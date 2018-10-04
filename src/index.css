@@ -1,7 +1,6 @@
 html, body, #root {
-  height: 100%;
-  width: 100%;
-  overflow: scroll;
+  height: 100vh;
+  width: 100vw;
 }
 
 body {
@@ -12,15 +11,12 @@ body {
 }
 
 .react-codemirror2 {
-  height: 92%;
-  width: 100%;
+  font-size: 24px;
+  flex: 1;
 }
 
-.CodeMirror {
-  min-height: 100vh;
-  font-size: 24px;
-  height: 100% !important;
-  width: 100% !important;
+.react-codemirror2 .CodeMirror {
+  height: 100%;
 }
 
 .editor-highlighted-background {

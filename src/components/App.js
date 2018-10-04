@@ -25,34 +25,29 @@ import ButtonPanel from './ButtonPanel'
 import snippets from '../utils/snippets'
 
 const Container = styled.div`
-  height: 100%;
-  width: 100%;
-
-  @media (max-width: 700px) {
-    height: auto;
-  }
-`
-
-const Body = styled.div`
   display: flex;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-
-  > * {
-    width: 50% !important;
-    height: 100% !important;
-    overflow: scroll;
-  }
 
   @media (max-width: 700px) {
     flex-direction: column-reverse;
+  }
+`
 
-    > * {
-      width: 100% !important;
-      height: auto !important;
-      overflow: auto !important;
-    }
+const LeftContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh
+  width: 50vw;
+
+  @media (max-width: 700px) {
+    width: 100vw;
+  }
+`
+
+const RightContainer = styled.div`
+  width: 50vw;
+
+  @media (max-width: 700px) {
+    width: 100vw;
   }
 `
 
@@ -400,52 +395,52 @@ class App extends Component {
 
     return (
       <Container>
-        <Body>
-          <div>
-            <ButtonPanel
-              currentOperation={currentOperation}
-              step={this.handleStep}
-              running={running}
-              run={this.handleRun}
-              clear={(e) => this.handleClear(true)}
-              serialize={this.handleSerialize}
-              pause={this.handlePause}
-              disabled={disableButtons}
-              onStep={this.changeRunSpeed}
-            />
-            <CodeMirror
-              ref={(cm) => this.cm = cm}
-              value={code}
-              options={{
-                mode: 'javascript',
-                theme: 'material',
-                lineNumbers: true,
-                lineWrapping: true,
-              }}
-              onBeforeChange={(editor, data, code) => {
-                if (code === '') {
-                  this.handleClear(true)
-                } else {
-                  this.setState({code})
-                  this.myInterpreter = getInterpreter(code)
-                }
-              }}
-              onPaste={() => {
-                this.handleClear(false)
-              }}
-            />
-          </div>
-          {stack.length === 0
-            ? <Welcome selectCodeSnippet={this.selectCodeSnippet} />
-            : <ExecutionContext
-                context={stack[0].name}
-                phase={stack[0].phase}
-                closure={stack[0].closure}
-                scopes={scopes}
-                remainingStack={stack.slice(1)}
-                getColor={this.getColor}
-              />}
-        </Body>
+        <LeftContainer>
+          <ButtonPanel
+            currentOperation={currentOperation}
+            step={this.handleStep}
+            running={running}
+            run={this.handleRun}
+            clear={(e) => this.handleClear(true)}
+            serialize={this.handleSerialize}
+            pause={this.handlePause}
+            disabled={disableButtons}
+            onStep={this.changeRunSpeed}
+          />
+          <CodeMirror
+            ref={(cm) => this.cm = cm}
+            value={code}
+            options={{
+              mode: 'javascript',
+              theme: 'material',
+              lineNumbers: true,
+              lineWrapping: true,
+            }}
+            onBeforeChange={(editor, data, code) => {
+              if (code === '') {
+                this.handleClear(true)
+              } else {
+                this.setState({code})
+                this.myInterpreter = getInterpreter(code)
+              }
+            }}
+            onPaste={() => {
+              this.handleClear(false)
+            }}
+          />
+        </LeftContainer>
+        <RightContainer>
+        {stack.length === 0
+          ? <Welcome selectCodeSnippet={this.selectCodeSnippet} />
+          : <ExecutionContext
+              context={stack[0].name}
+              phase={stack[0].phase}
+              closure={stack[0].closure}
+              scopes={scopes}
+              remainingStack={stack.slice(1)}
+              getColor={this.getColor}
+            />}
+          </RightContainer>
       </Container>
     )
   }

@@ -5,15 +5,13 @@ import 'rc-slider/assets/index.css'
 
 const ButtonPanelContainer = styled.div`
   background: #333333;
-  height: 8%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 105px;
 `
 
 const Top = styled.div`
-  height: 65%;
+  padding: 3px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -21,12 +19,6 @@ const Top = styled.div`
 `
 
 const Buttons = styled.div`
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  align-self: flex-start;
-  height: 100%;
-
   > button {
     border: none;
     background: none;
@@ -47,8 +39,9 @@ const Buttons = styled.div`
 const SliderContainer = styled.div`
   text-align: center;
   color: #fff;
-  height: 100%;
   margin: 8px;
+  position: relative;
+  bottom: 10px;
 
   > p {
     margin: 3px;
@@ -57,12 +50,12 @@ const SliderContainer = styled.div`
 
 const Status = styled.div`
   background: #dfe1e9;
-  height: 35%;
   display: flex;
   justify-content: flex-start;
   align-items: center;
   font-weight: 300
   font-size: 14px;
+  padding: 5px;
   padding-left: 10px;
   margin-bottom: 5px;
 
