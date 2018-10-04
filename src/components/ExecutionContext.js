@@ -12,12 +12,24 @@ const ExecutionContextStyles = styled.div`
   padding: 15px;
   margin: ${({ isGlobal }) => isGlobal ? '0px' : '25px'};
   border-radius: ${({ isGlobal }) => isGlobal ? '0px' : '5px'};
-  background: ${({ background }) => background};
+  background: ${({ isGlobal, background }) => {
+    if (isGlobal) {
+      // hahahahahah this works!
+      document.getElementById('execution-context')
+        .style = `background: ${background}`
+    }
+
+    return background
+  }};
   color: ${({ color }) => color};
 
   > h1 {
     margin: 0;
     font-size: 40px;
+
+     @media (max-width: 700px) {
+        font-size: 20px;
+     }
   }
 `
 
@@ -25,6 +37,10 @@ const VariableEnvironment = styled.ul`
   font-size: 24px;
   list-style-type: none;
   padding-left: 0;
+
+   @media (max-width: 700px) {
+      font-size: 12px;
+   }
 `
 
 const Variable = styled.li`
@@ -53,6 +69,10 @@ const Scope = styled.h2`
   > b {
     font-weight: 600
   }
+
+   @media (max-width: 700px) {
+    font-size: 14;
+   }
 `
 
 const Phase = styled.div`
@@ -66,6 +86,10 @@ const Phase = styled.div`
   margin-left: 0;
   color: #162b35;
   font-size: 20px;
+
+   @media (max-width: 700px) {
+      font-size: 10px;
+   }
 `
 
 class ExecutionContext extends Component {
@@ -100,7 +124,7 @@ class ExecutionContext extends Component {
     const variables = scopes[context]
 
     return (
-      <ExecutionContextStyles id='execution-context' background={this.state.color} isGlobal={context ==='Global'}>
+      <ExecutionContextStyles background={this.state.color} isGlobal={context ==='Global'}>
         {this.getHeader()}
         {closure === true ? null : <Phase>Phase: <b>{phase}</b></Phase>}
         <VariableEnvironment>

@@ -33,10 +33,13 @@ const LeftContainer = styled.div`
   flex-direction: column;
   height: 100vh
   width: 50vw;
+  overflow: scroll;
 `
 
 const RightContainer = styled.div`
   width: 50vw;
+  height: 100vh;
+  overflow: scroll;
 `
 
 function isFunction (type) {
@@ -134,6 +137,10 @@ class App extends Component {
     this.createdExecutionContexts = {}
     this.closuresToCreate = {}
     this.props.history.push('/javascript-visualizer')
+
+    // SHIPIT
+    document.getElementById('execution-context')
+      .style = `background: #fff`
   }
   handleSerialize = () => {
     this.props.history.push(
@@ -417,7 +424,7 @@ class App extends Component {
             }}
           />
         </LeftContainer>
-        <RightContainer>
+        <RightContainer id='execution-context'>
         {stack.length === 0
           ? <Welcome selectCodeSnippet={this.selectCodeSnippet} />
           : <ExecutionContext
