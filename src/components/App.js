@@ -26,10 +26,6 @@ import snippets from '../utils/snippets'
 
 const Container = styled.div`
   display: flex;
-
-  @media (max-width: 700px) {
-    flex-direction: column-reverse;
-  }
 `
 
 const LeftContainer = styled.div`
@@ -37,18 +33,10 @@ const LeftContainer = styled.div`
   flex-direction: column;
   height: 100vh
   width: 50vw;
-
-  @media (max-width: 700px) {
-    width: 100vw;
-  }
 `
 
 const RightContainer = styled.div`
   width: 50vw;
-
-  @media (max-width: 700px) {
-    width: 100vw;
-  }
 `
 
 function isFunction (type) {

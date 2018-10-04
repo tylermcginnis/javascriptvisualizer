@@ -24,6 +24,10 @@ const Buttons = styled.div`
     background: none;
     color: #fff;
     font-size: 20px;
+
+    @media (max-width: 700px) {
+      font-size: 10px;
+    }
   }
 
   > button:hover {
@@ -46,6 +50,11 @@ const SliderContainer = styled.div`
   > p {
     margin: 3px;
   }
+
+
+  @media (max-width: 700px) {
+    display: none;
+  }
 `
 
 const Status = styled.div`
@@ -62,6 +71,10 @@ const Status = styled.div`
   > span {
     font-weight: 500;
     margin-left: 10px;
+  }
+
+  @media (max-width: 700px) {
+    font-size: 8px;
   }
 `
 

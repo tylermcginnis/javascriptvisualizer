@@ -11,23 +11,36 @@ const Container = styled.div`
 const Info = styled.div`
   padding: 50px;
   flex: 1;
+
+  @media (max-width: 700px) {
+    padding: 8px;
+  }
+
+  @media (max-height: 800px) {
+    padding: 8px;
+  }
 `
 
 const Header = styled.h1`
   text-align: center;
   font-weight: 300;
-  font-size: 4.5vmax;
+  font-size:calc(12px + 4.5vw);
   letter-spacing: 1.8px;
   margin-top: 40px;
   border: none;
   margin-bottom: 20px;
+
+  @media (max-width: 700px) {
+    margin-top: 10px;
+    font-size:calc(12px + 2.5vw);
+  }
 `
 
 const Subheader = styled.h3`
   text-align: center;
   font-weight: 300;
   margin: 0 auto;
-  font-size: 25px;
+  font-size:calc(8px + 1.3vw);
 
   > span {
     font-weight: 500;
@@ -37,17 +50,25 @@ const Subheader = styled.h3`
 const Instructions = styled.ul`
   margin-top: 50px;
   display: block;
-  font-size: 20px;
+  font-size:calc(6px + .9vw);
   padding-left: 0
+
+  @media (max-width: 700px) {
+    margin-top: 10px;
+  }
 `
 
 const InstructionItem = styled.li`
   list-style-type: none;
   padding: 5px;
   margin: 10px;
-
   text-decoration: ${({ selectable }) => selectable ? 'underline' : 'none'};
   cursor: ${({ selectable }) => selectable ? 'pointer' : 'default'};
+
+  @media (max-width: 700px) {
+    margin: 3px;
+    padding: 1px;
+  }
 `
 
 const Disclosure = styled.div`
@@ -60,11 +81,22 @@ const Disclosure = styled.div`
   justify-content: space-around;
   align-items: center;
   text-align: center;
-  font-size: 18px;
+  font-size: .9vmax;
 
   > p {
     margin: 0
     padding: 0
+  }
+`
+
+
+const Img = styled.img`
+  height: 60px;
+  width: 60px;
+
+  @media (max-width: 700px) {
+    height: 30px;
+    width: 30px;
   }
 `
 
@@ -80,7 +112,6 @@ export default function Welcome ({ selectCodeSnippet }) {
           <InstructionItem>2. "Step" or "Run" through the code</InstructionItem>
           <InstructionItem>3. Visualize how your code is interpreted</InstructionItem>
         </Instructions>
-        <div style={{margin: 50}} />
         <Instructions>
           Here are some of our favorite code snippets to visualize
           <InstructionItem
@@ -112,8 +143,7 @@ export default function Welcome ({ selectCodeSnippet }) {
             <p>It's Beta AF. I'm working on ES6 support and lots of <a href='https://github.com/tylermcginnis/noname/issues'>bug fixes</a>.</p>
           </div>
           <a href='https://tylermcginnis.com'>
-            <img
-              style={{width: 60, height: 60}}
+            <Img
               alt='TylerMcGinnis.com Logo'
               src='https://tylermcginnis.com/images/logo-only.png'
             />
