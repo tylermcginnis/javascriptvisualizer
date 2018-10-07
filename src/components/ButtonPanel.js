@@ -23,7 +23,9 @@ const Buttons = styled.div`
     border: none;
     background: none;
     color: #fff;
-    font-size: 20px;
+    font-size: 18px;
+    padding: 8px;
+    text-shadow: -1px -1px 1px rgba(255,255,255,.1), 1px 1px 1px rgba(0,0,0,.5);
 
     @media (max-width: 700px) {
       font-size: 10px;
@@ -37,6 +39,11 @@ const Buttons = styled.div`
 
   > button:disabled {
     color: #919191;
+  }
+
+  > button:active {
+    color: #fff;
+    text-shadow: none;
   }
 `
 
@@ -78,7 +85,7 @@ const Status = styled.div`
   }
 `
 
-export default function ButtonPanel ({ onStep, step, run, clear, currentOperation = 'NA', running, pause, disabled, serialize }) {
+export default function ButtonPanel ({ onStep, step, run, restart, currentOperation = 'NA', running, pause, disabled, serialize }) {
   return (
     <ButtonPanelContainer>
       <Top>
@@ -87,7 +94,7 @@ export default function ButtonPanel ({ onStep, step, run, clear, currentOperatio
           {running === true
             ? <button onClick={pause}>Pause</button>
             : <button disabled={disabled} onClick={run}>Run</button>}
-          <button onClick={clear}>Clear</button>
+          <button onClick={restart}>Restart</button>
           <button onClick={serialize}>Serialize</button>
         </Buttons>
         <SliderContainer>

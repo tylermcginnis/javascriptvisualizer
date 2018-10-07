@@ -137,6 +137,7 @@ class App extends Component {
     this.createdExecutionContexts = {}
     this.closuresToCreate = {}
     this.props.history.push('/javascript-visualizer')
+    this.handlePause()
 
     // SHIPIT
     document.getElementById('execution-context')
@@ -396,11 +397,11 @@ class App extends Component {
             step={this.handleStep}
             running={running}
             run={this.handleRun}
-            clear={(e) => this.handleClear(true)}
             serialize={this.handleSerialize}
             pause={this.handlePause}
             disabled={disableButtons}
             onStep={this.changeRunSpeed}
+            restart={() => this.handleClear(false)}
           />
           <CodeMirror
             ref={(cm) => this.cm = cm}
