@@ -120,8 +120,8 @@ class ExecutionContext extends Component {
     return <Scope><b>{context}</b> Execution Context</Scope>
   }
   render() {
-    const { context, getColor, scopes, remainingStack, phase, closure } = this.props
-    const variables = scopes[context]
+    const { context, scopeHash, getColor, scopes, remainingStack, phase, closure } = this.props
+    const variables = scopes[scopeHash]
 
     return (
       <ExecutionContextStyles background={this.state.color} isGlobal={context ==='Global'}>
@@ -141,6 +141,7 @@ class ExecutionContext extends Component {
             ? null
             : <ExecutionContext
                 context={remainingStack[0].name}
+                scopeHash={remainingStack[0].hash}
                 phase={remainingStack[0].phase}
                 closure={remainingStack[0].closure}
                 scopes={scopes}

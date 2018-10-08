@@ -182,20 +182,20 @@ class App extends Component {
       }, speedMap[speed])
     }
   }
-  updateScope = (scope, scopeName, forThis) => {
+  updateScope = (scope, scopeHash, forThis) => {
     const globalsToIgnore = getGlobalsToIgnore()
 
-    const stackItem = this.state.stack.find((s) => s.name === scopeName)
-    if (stackItem && this.closuresToCreate[scopeName] === true
+    const stackFrame = this.state.stack.find((s) => s.hash === scopeHash)
+    if (stackFrame && this.closuresToCreate[scopeHash] === true
     && !forThis) {
-      return true
+      return
     }
 
     if (forThis) {
       const { key, identifier, value } = forThis
 
       return this.setState(({ scopes }) => {
-        const oldThis = JSON.parse(addQuotesToKeys(scopes[scopeName].this))
+        const oldThis = JSON.parse(addQuotesToKeys(scopes[scopeHash].this))
 
         const newThis = removeQuotesFromKeys(JSON.stringify({
           ...oldThis,
@@ -205,8 +205,8 @@ class App extends Component {
         return {
           scopes: {
             ...scopes,
-            [scopeName]: {
-              ...scopes[scopeName],
+            [scopeHash]: {
+              ...scopes[scopeHash],
               this: newThis
             }
           }
@@ -225,24 +225,25 @@ class App extends Component {
     this.setState(({ scopes }) => ({
       scopes: {
         ...scopes,
-        [scopeName]: {
-          ...scopes[scopeName],
+        [scopeHash]: {
+          ...scopes[scopeHash],
           ...scopeArgs,
         }
       }
     }))
   }
-  newExecutionContext = ({ name, scope, thisExpression }) => {
+  newExecutionContext = ({ name, hash, scope, thisExpression }) => {
     this.setState(({ stack, scopes }) => {
       return {
         stack: stack.concat([{
           name,
+          hash,
           closure: false,
           phase: 'Creation'
         }]),
         scopes: {
           ...scopes,
-          [name]: {
+          [hash]: {
             arguments: formatValue('Arguments', scope.properties.arguments.properties),
             this: formatValue('thisExpression', thisExpression),
           }
@@ -250,24 +251,24 @@ class App extends Component {
       }
     })
 
-    this.createdExecutionContexts[name] = true
-    this.updateScope(scope, name)
+    this.createdExecutionContexts[hash] = true
+    this.updateScope(scope, hash)
   }
-  handleEndExecutionContext = (name) => {
-    if (name === 'Global') return
+  handleEndExecutionContext = (scopeHash) => {
+    if (scopeHash === 'global') return
 
     const stack = this.state.stack.filter((s) =>
-      s.name !== name || this.closuresToCreate[name] === true
+      s.hash !== scopeHash || this.closuresToCreate[scopeHash] === true
     )
 
     this.setState({ stack })
 
-    this.createdExecutionContexts[name] = false
+    this.createdExecutionContexts[scopeHash] = false
   }
-  toExecutionPhase = (scopeName) => {
+  toExecutionPhase = (scopeHash) => {
     this.setState(({ stack }) => ({
       stack: stack.map((pancake) => {
-        return pancake.name === scopeName
+        return pancake.hash === scopeHash
           ? {
             ...pancake,
             phase: 'Execution'
@@ -276,37 +277,26 @@ class App extends Component {
       })
     }))
   }
-  checkClosure = (stackLength, highlighted, scopeName) => {
+  checkClosure = (stackLength, highlighted, scopeHash) => {
     // todo figure out a way to only create a closure if there's a reference
     // to the fn still
 
     if (stackLength > 1 && isFunction(highlighted.node.type)) {
-      this.closuresToCreate[scopeName] = true
+      this.closuresToCreate[scopeHash] = true
     }
 
     if (highlighted.node.type === 'CallExpression' && highlighted.doneExec_) {
-      const name = highlighted.node.callee.name || `anonymous_${this.getAnonCount()}`
-
-      if (this.closuresToCreate[name] === true) {
+      if (this.closuresToCreate[scopeHash] === true) {
         this.setState(({ stack }) => ({
-          stack: stack.map((s) => s.name !== name
+          stack: stack.map((s) => s.hash !== scopeHash
             ? s
             : { ...s, closure: true }
           )
         }))
 
-        delete this.closuresToCreate[name]
+        delete this.closuresToCreate[scopeHash]
       }
     }
-  }
-  getAnonCount = () => {
-    return this.state.stack.reduce((count, item) => {
-      if (item.name.includes('anonymous') && item.closure !== true) {
-        return count + 1
-      }
-
-      return count
-    }, 0)
   }
   selectCodeSnippet = (type) => {
     const code = snippets[type]
@@ -318,16 +308,15 @@ class App extends Component {
   }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
-    const anonCount = this.getAnonCount() // todo
-    const scopeName = getScopeName(highlightStack, anonCount)
+    const { scopeName, scopeHash } = getScopeName(highlightStack)
     const highlighted = highlightStack[highlightStack.length - 1]
     const scope = this.myInterpreter.getScope()
 
     this.highlightCode(highlighted.node)
     this.setState({currentOperation: highlighted.node.type})
 
-    if (this.createdExecutionContexts[scopeName] === true) {
-      this.toExecutionPhase(scopeName)
+    if (this.createdExecutionContexts[scopeHash] === true) {
+      this.toExecutionPhase(scopeHash)
     }
 
     if (this.state.stack.length === 0) {
@@ -336,21 +325,21 @@ class App extends Component {
     }
 
     if (createNewExecutionContext(this.previousHighlight.node, highlighted.node)) {
-
       this.newExecutionContext({
         name: scopeName,
+        hash: scopeHash,
         scope,
         thisExpression: highlighted.thisExpression,
       })
     }
 
     if (endExecutionContext(highlighted)) {
-      this.handleEndExecutionContext(scopeName)
+      this.handleEndExecutionContext(scopeHash)
     }
 
     this.updateScope(
       scope,
-      scopeName,
+      scopeHash,
       get(highlighted, 'node.type') === 'AssignmentExpression'
         ? get(highlighted, 'node.left.object.type') === 'ThisExpression'
           ? {
@@ -367,7 +356,7 @@ class App extends Component {
     this.checkClosure(
       this.state.stack.length,
       highlighted,
-      scopeName
+      scopeHash
     )
 
     this.previousHighlight = highlighted
@@ -430,6 +419,7 @@ class App extends Component {
           ? <Welcome selectCodeSnippet={this.selectCodeSnippet} />
           : <ExecutionContext
               context={stack[0].name}
+              scopeHash={stack[0].hash}
               phase={stack[0].phase}
               closure={stack[0].closure}
               scopes={scopes}

@@ -180,41 +180,57 @@ export function endExecutionContext ({ node, doneCallee_, doneExec_ }) {
     doneExec_ === true
 }
 
-export function getScopeName (stack, anonCount) {
+export function getScopeName (stack) {
+  // todo. need a consistent hash.
+
   for (let i = stack.length - 1; i >= 0; i--) {
     const pancake = stack[i]
 
-    // if (pancake.node.type === 'MemberExpression') {
-    //   I had this in here. Not sure why.
-    //   return pancake.node.property.name
-    // }
-
     if (pancake.func_ && pancake.func_.node) {
       if (pancake.node.callee.type === 'MemberExpression') {
-        return pancake.node.callee.property.name
+        const scopeName  = pancake.node.callee.property.name
+
+        return {
+          scopeName,
+          scopeHash: scopeName + 'todo'
+        }
       }
 
       const id = pancake.func_.node.id
-      return id ? id.name : 'anon' // todo
+
+      const name = id ? id.name : 'anonymous'
+
+      return {
+        scopeName: name,
+        scopeHash: name + pancake.func_.node.start + pancake.func_.node.end
+      }
     }
 
     if (pancake.node && pancake.node.callee) {
-      return pancake.node.callee.name
+      const scopeName = pancake.node.callee.name
+      return {
+        scopeName,
+        scopeHash: scopeName + 'TODO'
+      }
     }
   }
 
-  return 'Global'
+  return {
+    scopeName: 'Global',
+    scopeHash: 'global',
+  }
 }
 
 export function getFirstStepState () {
   return {
     stack: [{
       name: 'Global',
+      hash: 'global',
       closure: false,
       phase: 'Creation'
     }],
     scopes: {
-      'Global': {
+      'global': {
         'window': 'global object',
         'this': 'window',
       }
