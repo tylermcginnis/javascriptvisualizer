@@ -2,10 +2,11 @@
   "name": "noname",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://tylermcginnis.com/javascript-visualizer/",
+  "homepage": "https://javascriptvisualizer.com",
   "dependencies": {
     "acorn": "^6.0.2",
     "codemirror": "^5.40.0",
+    "gh-pages": "^2.0.1",
     "jshint": "^2.9.6",
     "lodash.get": "^4.4.2",
     "lodash.omit": "^4.5.0",
@@ -23,6 +24,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build -b master"
   }
 }

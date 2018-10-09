@@ -140,7 +140,7 @@ class App extends Component {
     this.previousHighlight = { node: { type: null } }
     this.createdExecutionContexts = {}
     this.closuresToCreate = {}
-    this.props.history.push('/javascript-visualizer')
+    this.props.history.push('/')
     this.handlePause()
 
     // SHIPIT
@@ -149,7 +149,7 @@ class App extends Component {
   }
   handleSerialize = () => {
     this.props.history.push(
-      '/javascript-visualizer/?' + queryString.stringify({ code: this.state.code})
+      '/?' + queryString.stringify({ code: this.state.code})
     )
   }
   changeRunSpeed =(speed) => {
