@@ -40,7 +40,6 @@ function scopeChain () {
   return `var topLevelVar = "Since this variable was declared outside of a function, it'll go on the global scope.";
 
 function topLevelFn () {
-  globalVar = 'This variable has no declaration, it should be put on the global scope.';
   var localVar = "This variable should be local to topLevelFn's scope";
 
   function nestedFn () {
