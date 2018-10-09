@@ -94,7 +94,7 @@ export default function ButtonPanel ({ onStep, step, run, restart, currentOperat
           {running === true
             ? <button onClick={pause}>Pause</button>
             : <button disabled={disabled} onClick={run}>Run</button>}
-          <button onClick={restart}>Reset</button>
+          <button onClick={restart}>Restart</button>
           <button onClick={serialize}>Serialize</button>
         </Buttons>
         <SliderContainer>
