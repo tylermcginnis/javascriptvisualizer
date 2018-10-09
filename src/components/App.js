@@ -20,6 +20,9 @@ import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/material.css'
 import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/addon/selection/mark-selection.js'
+import 'codemirror/addon/lint/lint.js'
+import 'codemirror/addon/lint/javascript-lint.js'
+import 'codemirror/addon/lint/lint.css'
 import ExecutionContext from './ExecutionContext'
 import Welcome from './Welcome'
 import ButtonPanel from './ButtonPanel'
@@ -67,6 +70,8 @@ class App extends Component {
     const { code = '' } = queryString.parse(this.props.location.search)
     this.myInterpreter = getInterpreter(code)
     this.setState({code})
+
+    console.log(this.cm)
   }
   clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {
@@ -449,6 +454,8 @@ class App extends Component {
               theme: 'material',
               lineNumbers: true,
               lineWrapping: true,
+              lint: true,
+              gutters: ["CodeMirror-lint-markers"],
             }}
             onBeforeChange={(editor, data, code) => {
               if (code === '') {
