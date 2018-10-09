@@ -35,7 +35,7 @@ const Logo = styled.img`
 const Header = styled.h1`
   text-align: center;
   font-weight: 300;
-  font-size:calc(12px + 3.8vw);
+  font-size:calc(12px + 3.6vw);
   letter-spacing: 1.8px;
   margin-top: 40px;
   border: none;
@@ -43,7 +43,7 @@ const Header = styled.h1`
 
   @media (max-width: 700px) {
     margin-top: 10px;
-    font-size:calc(12px + 1.8vw);
+    font-size:calc(12px + 1.7vw);
   }
 `
 
@@ -51,7 +51,7 @@ const Subheader = styled.h3`
   text-align: center;
   font-weight: 300;
   margin: 0 auto;
-  font-size:calc(8px + .95vw);
+  font-size:calc(8px + .91vw);
 
   > span {
     font-weight: 500;
@@ -61,7 +61,7 @@ const Subheader = styled.h3`
 const Instructions = styled.ul`
   margin-top: 50px;
   display: block;
-  font-size:calc(6px + .75vw);
+  font-size:calc(6px + .7vw);
   padding-left: 0
 
   @media (max-width: 700px) {
@@ -92,7 +92,7 @@ const Disclosure = styled.div`
   justify-content: space-around;
   align-items: center;
   text-align: center;
-  font-size: 18px;
+  font-size: 17px;
   padding: 5px;
 
   > p {
