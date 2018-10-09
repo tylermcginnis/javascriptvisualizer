@@ -254,16 +254,21 @@ class App extends Component {
     this.createdExecutionContexts[hash] = true
     this.updateScope(scope, hash)
   }
-  handleEndExecutionContext = (scopeHash) => {
-    if (scopeHash === 'global') return
+  handleEndExecutionContext = () => {
+    const { stack } = this.state
+    const stackLength = stack.length
+    const currentExeContext = stack[stackLength - 1]
 
-    const stack = this.state.stack.filter((s) =>
-      s.hash !== scopeHash || this.closuresToCreate[scopeHash] === true
-    )
+    if (this.closuresToCreate[currentExeContext.hash] === true) {
+      this.convertToClosure(currentExeContext.hash)
+      this.createdExecutionContexts[currentExeContext.hash] = false
 
-    this.setState({ stack })
+      return
+    }
 
-    this.createdExecutionContexts[scopeHash] = false
+    this.setState(({ stack }) => ({
+      stack: stack.filter((f, i) => i !== stackLength - 1)
+    }))
   }
   toExecutionPhase = (scopeHash) => {
     this.setState(({ stack }) => ({
@@ -277,26 +282,17 @@ class App extends Component {
       })
     }))
   }
-  checkClosure = (stackLength, highlighted, scopeHash) => {
-    // todo figure out a way to only create a closure if there's a reference
-    // to the fn still
-
-    if (stackLength > 1 && isFunction(highlighted.node.type)) {
-      this.closuresToCreate[scopeHash] = true
-    }
-
-    if (highlighted.node.type === 'CallExpression' && highlighted.doneExec_) {
-      if (this.closuresToCreate[scopeHash] === true) {
-        this.setState(({ stack }) => ({
-          stack: stack.map((s) => s.hash !== scopeHash
-            ? s
-            : { ...s, closure: true }
-          )
-        }))
-
-        delete this.closuresToCreate[scopeHash]
-      }
-    }
+  convertToClosure = (scopeHash) => {
+    this.setState(({ stack }) => ({
+      stack: stack.map((f) => {
+        return f.hash === scopeHash
+          ? {
+            ...f,
+            closure: true
+          }
+          : f
+      })
+    }))
   }
   selectCodeSnippet = (type) => {
     const code = snippets[type]
@@ -311,15 +307,17 @@ class App extends Component {
     const { scopeName, scopeHash } = getScopeName(highlightStack)
     const highlighted = highlightStack[highlightStack.length - 1]
     const scope = this.myInterpreter.getScope()
+    const nodeType = highlighted.node.type
+    const stackLength = this.state.stack.length
 
     this.highlightCode(highlighted.node)
-    this.setState({currentOperation: highlighted.node.type})
+    this.setState({currentOperation: nodeType})
 
     if (this.createdExecutionContexts[scopeHash] === true) {
       this.toExecutionPhase(scopeHash)
     }
 
-    if (this.state.stack.length === 0) {
+    if (stackLength === 0) {
       this.setState(getFirstStepState())
       this.createdExecutionContexts.Global = true
     }
@@ -333,8 +331,8 @@ class App extends Component {
       })
     }
 
-    if (endExecutionContext(highlighted)) {
-      this.handleEndExecutionContext(scopeHash)
+    if (stackLength > 1 && isFunction(nodeType)) {
+      this.closuresToCreate[scopeHash] = true
     }
 
     this.updateScope(
@@ -353,11 +351,9 @@ class App extends Component {
         : null
     )
 
-    this.checkClosure(
-      this.state.stack.length,
-      highlighted,
-      scopeHash
-    )
+    if (endExecutionContext(highlighted)) {
+      this.handleEndExecutionContext()
+    }
 
     this.previousHighlight = highlighted
 

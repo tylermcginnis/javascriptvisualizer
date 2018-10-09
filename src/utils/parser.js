@@ -39,6 +39,13 @@ const globalToIgnore = {
   "console": true,
 }
 
+const arrayMethodsToIgnore = {
+  map: true,
+  forEach: true,
+  reduce: true,
+  filter: true,
+}
+
 export function getGlobalsToIgnore () {
   return globalToIgnore
 }
@@ -163,6 +170,10 @@ export function formatValue (type, init) {
 export function createNewExecutionContext (prev, current) {
   if (prev.type === 'CallExpression' || prev.type === 'NewExpression') {
     if (current.type === 'BlockStatement') {
+      if (arrayMethodsToIgnore[get(prev, 'callee.property.name')]) {
+        return false
+      }
+
       if (get(prev, 'callee.object.type') === 'ArrayExpression') {
         return false
       }
@@ -181,18 +192,35 @@ export function endExecutionContext ({ node, doneCallee_, doneExec_ }) {
 }
 
 export function getScopeName (stack) {
-  // todo. need a consistent hash.
-
   for (let i = stack.length - 1; i >= 0; i--) {
+    const state = stack[i]
+
+    if (state._fn) {
+      const { name, start, end } = state._fn
+
+      return {
+        scopeName: name,
+        scopeHash: name + start + end
+      }
+    }
+  }
+
+  return {
+    scopeName: 'Global',
+    scopeHash: 'global',
+  }
+
+  /*for (let i = stack.length - 1; i >= 0; i--) {
     const pancake = stack[i]
+
 
     if (pancake.func_ && pancake.func_.node) {
       if (pancake.node.callee.type === 'MemberExpression') {
-        const scopeName  = pancake.node.callee.property.name
+        const { name, start, end }  = pancake.node.callee.property
 
         return {
-          scopeName,
-          scopeHash: scopeName + 'todo'
+          scopeName: name,
+          scopeHash: name + start + end
         }
       }
 
@@ -206,8 +234,9 @@ export function getScopeName (stack) {
       }
     }
 
-    if (pancake.node && pancake.node.callee) {
+    if (pancake.node && pancake.node.callee && pancake.node.callee.name) {
       const scopeName = pancake.node.callee.name
+
       return {
         scopeName,
         scopeHash: scopeName + 'TODO'
@@ -218,7 +247,7 @@ export function getScopeName (stack) {
   return {
     scopeName: 'Global',
     scopeHash: 'global',
-  }
+  }*/
 }
 
 export function getFirstStepState () {
