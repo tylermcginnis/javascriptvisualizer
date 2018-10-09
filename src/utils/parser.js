@@ -263,6 +263,7 @@ export function getInterpreter(code) {
     MyInterpreter = placeholder
   } catch(e) {
     // Thrown if code is not valid
+    console.log('EEE', e)
   }
 
   return MyInterpreter

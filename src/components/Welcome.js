@@ -108,7 +108,7 @@ export default function Welcome ({ selectCodeSnippet }) {
         <Subheader>A tool for visualizing <span>Execution Context</span>, <span>Hoisting</span>, <span>Closures</span>, and <span>Scopes</span> in JavaScript</Subheader>
         <Instructions>
           Instructions:
-          <InstructionItem>1. Type (ES5) JavaScript in the editor</InstructionItem>
+          <InstructionItem>1. Type <b>(ES5)</b> JavaScript in the editor</InstructionItem>
           <InstructionItem>2. "Step" or "Run" through the code</InstructionItem>
           <InstructionItem>3. Visualize how your code is interpreted</InstructionItem>
         </Instructions>
@@ -116,8 +116,13 @@ export default function Welcome ({ selectCodeSnippet }) {
           Here are some of our favorite code snippets to visualize
           <InstructionItem
             selectable
-            onClick={() => selectCodeSnippet('closures')}>
-              Closures
+            onClick={() => selectCodeSnippet('simpleClosure')}>
+              Simple Closure
+          </InstructionItem>
+          <InstructionItem
+            selectable
+            onClick={() => selectCodeSnippet('complexClosures')}>
+              Complex Closures
           </InstructionItem>
           <InstructionItem
             selectable
@@ -133,6 +138,11 @@ export default function Welcome ({ selectCodeSnippet }) {
             selectable
             onClick={() => selectCodeSnippet('pseudoclassical')}>
               Pseudoclassical Pattern
+          </InstructionItem>
+          <InstructionItem
+            selectable
+            onClick={() => selectCodeSnippet('thisKeyword')}>
+              The this Keyword
           </InstructionItem>
         </Instructions>
       </Info>

@@ -1,4 +1,4 @@
-function closures () {
+function simpleClosure () {
   return `var count = 0
 
 function makeAdder(x) {
@@ -33,7 +33,7 @@ function bubbleSort () {
   return arr;
 }
 
-bubbleSort([5,19,1,7]);`
+bubbleSort([5,19,1]);`
 }
 
 function scopeChain () {
@@ -92,12 +92,54 @@ var me = new Person('Tyler', 28)
 me.sayName()`
 }
 
+function complexClosures () {
+  return `var counter = (function() {
+  var privateCounter = 0;
+  function changeBy(val) {
+    privateCounter += val;
+  }
+  return {
+    increment: function() {
+      changeBy(1);
+    },
+    decrement: function() {
+      changeBy(-1);
+    },
+    value: function() {
+      return privateCounter;
+    }
+  };
+})();
+
+counter.value();
+counter.increment();
+counter.increment();
+counter.value();
+counter.decrement();
+counter.value();`
+}
+
+function thisKeyword () {
+  return `var user = {
+  name: 'Tyler',
+  age: 28,
+  handle: '@tylermcginnis',
+  greet: function () {
+    console.log('Hello! My name is ', this.name)
+  }
+}
+
+user.greet()`
+}
+
 const snippets = {
-  closures: closures(),
+  simpleClosure: simpleClosure(),
+  complexClosures: complexClosures(),
   bubbleSort: bubbleSort(),
   scopeChain: scopeChain(),
   moreClosures: moreClosures(),
-  pseudoclassical: pseudoclassical()
+  pseudoclassical: pseudoclassical(),
+  thisKeyword: thisKeyword()
 }
 
 export default snippets
