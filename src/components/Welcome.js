@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
+import SocialBadges from './SocialBadges'
 
 const Container = styled.div`
   height: 100vh;
@@ -18,6 +19,16 @@ const Info = styled.div`
 
   @media (max-height: 800px) {
     padding: 8px;
+  }
+`
+
+const Logo = styled.img`
+  margin: 0 auto;
+  display: block;
+
+  @media (max-width: 800px) {
+    width: 80px;
+    height: 80px;
   }
 `
 
@@ -75,17 +86,26 @@ const Disclosure = styled.div`
   background: #efefef;
   font-style: italic;
   height: 10vh;
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
   text-align: center;
-  font-size: .9vmax;
+  font-size: 25px;
+  padding: 5px;
 
   > p {
     margin: 0
     padding: 0
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 700px) {
+    font-size: 10px;
   }
 `
 
@@ -104,8 +124,12 @@ export default function Welcome ({ selectCodeSnippet }) {
   return (
     <Container>
       <Info>
+        <a href='https://tylermcginnis.com'>
+          <Logo src='https://tylermcginnis.com/images/logo-only.png' alt='TylerMcGinnis.com logo' />
+        </a>
         <Header>JavaScript Visualizer</Header>
         <Subheader>A tool for visualizing <span>Execution Context</span>, <span>Hoisting</span>, <span>Closures</span>, and <span>Scopes</span> in JavaScript</Subheader>
+        <SocialBadges />
         <Instructions>
           Instructions:
           <InstructionItem>1. Type <b>(ES5)</b> JavaScript in the editor</InstructionItem>
@@ -152,12 +176,6 @@ export default function Welcome ({ selectCodeSnippet }) {
             <p><b>This was created for our <a href='https://tylermcginnis.com/courses/advanced-javascript/'>Advanced JavaScript course</a>.</b></p>
             <p>It's Beta AF. I'm working on ES6 support and lots of <a href='https://github.com/tylermcginnis/noname/issues'>bug fixes</a>.</p>
           </div>
-          <a href='https://tylermcginnis.com'>
-            <Img
-              alt='TylerMcGinnis.com Logo'
-              src='https://tylermcginnis.com/images/logo-only.png'
-            />
-          </a>
         </Disclosure>
       </div>
     </Container>
