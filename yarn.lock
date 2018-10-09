@@ -39,13 +39,17 @@ acorn@^3.0.4:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-3.3.0.tgz#45e37fb39e8da3f25baee3ff5369e2bb5f22017a"
 
-acorn@^4.0.11, acorn@^4.0.3, acorn@^4.0.4:
+acorn@^4.0.3, acorn@^4.0.4:
   version "4.0.13"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.13.tgz#105495ae5361d697bd195c825192e1ad7f253787"
 
 acorn@^5.0.0, acorn@^5.5.0:
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.2.tgz#91fa871883485d06708800318404e72bfb26dcc5"
+
+acorn@^6.0.2:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.0.2.tgz#6a459041c320ab17592c6317abbfdf4bbaa98ca4"
 
 add-dom-event-listener@1.x:
   version "1.0.2"
@@ -1466,10 +1470,6 @@ cliui@^3.2.0:
 clone@^1.0.2:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
-
-clone@aminmarashi/clone#d97b4f:
-  version "2.1.1"
-  resolved "https://codeload.github.com/aminmarashi/clone/tar.gz/d97b4f0ff3d3afebcaaf4a2ecc9c50fbce914900"
 
 co@^4.6.0:
   version "4.6.0"
@@ -4005,13 +4005,6 @@ jest@20.0.4:
 js-base64@^2.1.9:
   version "2.4.9"
   resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-2.4.9.tgz#748911fb04f48a60c4771b375cac45a80df11c03"
-
-js-interpreter@^1.4.6:
-  version "1.4.6"
-  resolved "https://registry.yarnpkg.com/js-interpreter/-/js-interpreter-1.4.6.tgz#0c7bfbd7ef6a53cc1b3ba16d906b638bf0855214"
-  dependencies:
-    acorn "^4.0.11"
-    clone aminmarashi/clone#d97b4f
 
 "js-tokens@^3.0.0 || ^4.0.0":
   version "4.0.0"

@@ -1,4 +1,4 @@
-import Interpreter from 'js-interpreter';
+import Interpreter from './interpreter';
 import get from 'lodash.get'
 
 const globalToIgnore = {
@@ -186,9 +186,13 @@ export function createNewExecutionContext (prev, current) {
 }
 
 export function endExecutionContext ({ node, doneCallee_, doneExec_ }) {
-  return node.type === 'CallExpression' &&
-    doneCallee_ === true &&
-    doneExec_ === true
+  if (node.type === 'CallExpression') {
+    if (node.callee && node.callee.object && node.callee.object.name === 'console') {
+      return false
+    }
+
+    return doneCallee_ === true && doneExec_ === true
+  }
 }
 
 export function getScopeName (stack) {
@@ -209,45 +213,6 @@ export function getScopeName (stack) {
     scopeName: 'Global',
     scopeHash: 'global',
   }
-
-  /*for (let i = stack.length - 1; i >= 0; i--) {
-    const pancake = stack[i]
-
-
-    if (pancake.func_ && pancake.func_.node) {
-      if (pancake.node.callee.type === 'MemberExpression') {
-        const { name, start, end }  = pancake.node.callee.property
-
-        return {
-          scopeName: name,
-          scopeHash: name + start + end
-        }
-      }
-
-      const id = pancake.func_.node.id
-
-      const name = id ? id.name : 'anonymous'
-
-      return {
-        scopeName: name,
-        scopeHash: name + pancake.func_.node.start + pancake.func_.node.end
-      }
-    }
-
-    if (pancake.node && pancake.node.callee && pancake.node.callee.name) {
-      const scopeName = pancake.node.callee.name
-
-      return {
-        scopeName,
-        scopeHash: scopeName + 'TODO'
-      }
-    }
-  }
-
-  return {
-    scopeName: 'Global',
-    scopeHash: 'global',
-  }*/
 }
 
 export function getFirstStepState () {

@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import get from 'lodash.get'
+import omit from 'lodash.omit'
 import queryString from 'query-string'
 import {
   getInterpreter,
@@ -182,11 +183,11 @@ class App extends Component {
       }, speedMap[speed])
     }
   }
-  updateScope = (scope, scopeHash, forThis) => {
+  setScopeVariables = (scope, scopeHash, forThis) => {
     const globalsToIgnore = getGlobalsToIgnore()
 
-    const stackFrame = this.state.stack.find((s) => s.hash === scopeHash)
-    if (stackFrame && this.closuresToCreate[scopeHash] === true
+    const frame = this.state.stack.find((s) => s.hash === scopeHash)
+    if (frame && this.closuresToCreate[scopeHash] === true
     && !forThis) {
       return
     }
@@ -252,23 +253,29 @@ class App extends Component {
     })
 
     this.createdExecutionContexts[hash] = true
-    this.updateScope(scope, hash)
+    this.setScopeVariables(scope, hash)
   }
-  handleEndExecutionContext = () => {
+  handleEndExecutionContext = (updateLocalScopeChain) => {
     const { stack } = this.state
     const stackLength = stack.length
+    if (stackLength === 1) {
+      return
+    }
+
     const currentExeContext = stack[stackLength - 1]
 
     if (this.closuresToCreate[currentExeContext.hash] === true) {
       this.convertToClosure(currentExeContext.hash)
       this.createdExecutionContexts[currentExeContext.hash] = false
+      updateLocalScopeChain()
 
       return
     }
 
-    this.setState(({ stack }) => ({
-      stack: stack.filter((f, i) => i !== stackLength - 1)
-    }))
+    this.setState(({ stack, scopes }) => ({
+      stack: stack.filter((f, i) => i !== stackLength - 1),
+      scopes: omit(scopes, [currentExeContext.hash])
+    }), updateLocalScopeChain)
   }
   toExecutionPhase = (scopeHash) => {
     this.setState(({ stack }) => ({
@@ -301,6 +308,50 @@ class App extends Component {
     })
 
     this.myInterpreter = getInterpreter(code)
+  }
+  updateLocalScopeChain = () => {
+    const ignore = {
+      this: true,
+      window: true,
+      arguments: true,
+    }
+
+    const { scopes } = this.state
+
+    const scopeKeys = Object.keys(scopes)
+
+    scopeKeys.forEach((scopeKey) => {
+      const scope = scopes[scopeKey]
+
+      Object.keys(scope)
+        .filter((property) => !ignore[property])
+        .forEach((property, i) => {
+          if (property === 'fn()') return false
+
+          const value = this.myInterpreter.getValue(property)
+
+          if (value === null) {
+            // Trying to figure out a way to use this to see if there's even a reference
+            // to the closure anymore. If not, we can remove it from React's state.
+            // problem is getValue isn't checking closure scopes, just current and parent scopes.
+
+            // const stack = this.state.stack
+            // const stackLength = stack.length
+            // this.closuresToCreate[stack[stackLength - 1].hash] = false
+            // this.handleEndExecutionContext()
+          } else {
+            this.setState(({ scopes }) => ({
+              scopes: {
+                ...scopes,
+                [scopeKey]: {
+                  ...scopes[scopeKey],
+                  [property]: argToString(value, scopeKey, true)
+                }
+              }
+            }))
+          }
+        })
+    })
   }
   handleStep = () => {
     const highlightStack = this.myInterpreter.stateStack
@@ -335,7 +386,7 @@ class App extends Component {
       this.closuresToCreate[scopeHash] = true
     }
 
-    this.updateScope(
+    this.setScopeVariables(
       scope,
       scopeHash,
       get(highlighted, 'node.type') === 'AssignmentExpression'
@@ -352,7 +403,9 @@ class App extends Component {
     )
 
     if (endExecutionContext(highlighted)) {
-      this.handleEndExecutionContext()
+      this.handleEndExecutionContext(this.updateLocalScopeChain)
+    } else {
+      this.updateLocalScopeChain()
     }
 
     this.previousHighlight = highlighted
