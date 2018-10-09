@@ -40,10 +40,20 @@ const globalToIgnore = {
 }
 
 const arrayMethodsToIgnore = {
-  map: true,
-  forEach: true,
-  reduce: true,
+  every: true,
+  fill: true,
   filter: true,
+  find: true,
+  findIndex: true,
+  flat: true,
+  flatMap: true,
+  forEach: true,
+  map: true,
+  reduce: true,
+  reduceRight: true,
+  reverse: true,
+  some: true,
+  sort: true,
 }
 
 export function getGlobalsToIgnore () {
@@ -263,7 +273,6 @@ export function getInterpreter(code) {
     MyInterpreter = placeholder
   } catch(e) {
     // Thrown if code is not valid
-    console.log('EEE', e)
   }
 
   return MyInterpreter

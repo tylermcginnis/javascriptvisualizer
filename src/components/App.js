@@ -70,8 +70,6 @@ class App extends Component {
     const { code = '' } = queryString.parse(this.props.location.search)
     this.myInterpreter = getInterpreter(code)
     this.setState({code})
-
-    console.log(this.cm)
   }
   clearMarkers = () => this.markers.forEach((m) => m.clear())
   getColor = () => {

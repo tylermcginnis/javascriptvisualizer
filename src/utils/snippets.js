@@ -1,5 +1,5 @@
 function simpleClosure () {
-  return `var count = 0
+  return `var count = 0;
 
 function makeAdder(x) {
   return function(y) {
@@ -8,7 +8,7 @@ function makeAdder(x) {
 }
 
 var add5 = makeAdder(5);
-count += add5(2)`
+count += add5(2);`
 }
 
 function bubbleSort () {
@@ -28,7 +28,7 @@ function bubbleSort () {
       }
     }
 
-  } while (swapped)
+  } while (swapped);
 
   return arr;
 }
@@ -37,29 +37,29 @@ bubbleSort([5,19,1]);`
 }
 
 function scopeChain () {
-  return `var topLevelVar = "Since this variable was declared outside of a function, it'll go on the global scope."
+  return `var topLevelVar = "Since this variable was declared outside of a function, it'll go on the global scope.";
 
 function topLevelFn () {
-  globalVar = 'This variable has no declaration, it should be put on the global scope.'
-  var localVar = "This variable should be local to topLevelFn's scope"
+  globalVar = 'This variable has no declaration, it should be put on the global scope.';
+  var localVar = "This variable should be local to topLevelFn's scope";
 
   function nestedFn () {
-    var anotherLocalVar = "Local to nestedFn's scope."
-    var access = "Because of the scope chain, in this function we still have access to any of the variable declared in topLevelFn or the global scope."
+    var anotherLocalVar = "Local to nestedFn's scope.";
+    var access = "Because of the scope chain, in this function we still have access to any of the variable declared in topLevelFn or the global scope.";
 
-    console.log(localVar)
-    console.log(topLevelVar)
+    console.log(localVar);
+    console.log(topLevelVar);
   }
 
-  nestedFn()
+  nestedFn();
 }
 
 var fnExpression = function () {
-  var hoisted = "Did you notice that fnExpression is a function expression? It's declaration is hoisted and set to undefined in the 'creation' phase."
-}
+  var hoisted = "Did you notice that fnExpression is a function expression? It's declaration is hoisted and set to undefined in the 'creation' phase.";
+};
 
-fnExpression()
-topLevelFn()`
+fnExpression();
+topLevelFn();`
 }
 
 function moreClosures () {
@@ -79,17 +79,17 @@ sum(1)(2)(3)(4); // log 20`
 
 function pseudoclassical () {
   return `function Person (name, age) {
-  this.name = name
-  this.age = age
+  this.name = name;
+  this.age = age;
 }
 
 Person.prototype.sayName = function () {
-  alert(this.name)
-}
+  alert(this.name);
+};
 
-var me = new Person('Tyler', 28)
+var me = new Person('Tyler', 28);
 
-me.sayName()`
+me.sayName();`
 }
 
 function complexClosures () {
@@ -125,11 +125,11 @@ function thisKeyword () {
   age: 28,
   handle: '@tylermcginnis',
   greet: function () {
-    console.log('Hello! My name is ', this.name)
+    console.log('Hello! My name is ', this.name);
   }
-}
+};
 
-user.greet()`
+user.greet();`
 }
 
 const snippets = {
