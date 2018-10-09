@@ -35,7 +35,7 @@ const Logo = styled.img`
 const Header = styled.h1`
   text-align: center;
   font-weight: 300;
-  font-size:calc(12px + 4vw);
+  font-size:calc(12px + 3.8vw);
   letter-spacing: 1.8px;
   margin-top: 40px;
   border: none;
@@ -43,7 +43,7 @@ const Header = styled.h1`
 
   @media (max-width: 700px) {
     margin-top: 10px;
-    font-size:calc(12px + 2vw);
+    font-size:calc(12px + 1.8vw);
   }
 `
 
@@ -51,7 +51,7 @@ const Subheader = styled.h3`
   text-align: center;
   font-weight: 300;
   margin: 0 auto;
-  font-size:calc(8px + 1vw);
+  font-size:calc(8px + .95vw);
 
   > span {
     font-weight: 500;
