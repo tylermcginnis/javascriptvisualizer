@@ -2,7 +2,7 @@
   "name": "noname",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://javascriptvisualizer.com",
+  "homepage": "http://tylermcginnis.github.io/javascript-visualizer",
   "dependencies": {
     "acorn": "^6.0.2",
     "codemirror": "^5.40.0",
@@ -26,6 +26,6 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build -b master"
+    "deploy": "gh-pages -d build"
   }
 }
