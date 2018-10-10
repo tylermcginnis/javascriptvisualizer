@@ -8,6 +8,7 @@ const ButtonPanelContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-height: 15%;
 `
 
 const Top = styled.div`
