@@ -35,7 +35,7 @@ const Container = styled.div`
 const LeftContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh
+  height: 100vh;
   width: 50vw;
   overflow: scroll;
 `
