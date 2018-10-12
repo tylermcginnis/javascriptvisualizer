@@ -157,11 +157,8 @@ class App extends Component {
     this.handleClipboard()
   }
   handleClipboard = () => {
-    const success = copyUrlToClipboard()
-
-    if (success) {
-      this.setState({ showNotification: true })
-    }
+    copyUrlToClipboard()
+    this.setState({ showNotification: true })
   }
   changeRunSpeed =(speed) => {
     const speedMap = {
