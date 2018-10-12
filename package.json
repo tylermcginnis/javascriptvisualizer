@@ -6,6 +6,7 @@
   "dependencies": {
     "acorn": "^6.0.2",
     "codemirror": "^5.40.0",
+    "copy-text-to-clipboard": "^1.0.4",
     "gh-pages": "^2.0.1",
     "jshint": "^2.9.6",
     "lodash.get": "^4.4.2",
