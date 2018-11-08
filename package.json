@@ -5,6 +5,7 @@
   "homepage": "https://javascriptvisualizer.com",
   "dependencies": {
     "acorn": "^6.0.2",
+    "clipboard-copy": "^2.0.1",
     "codemirror": "^5.40.0",
     "gh-pages": "^2.0.1",
     "jshint": "^2.9.6",

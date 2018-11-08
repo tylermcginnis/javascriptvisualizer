@@ -26,7 +26,9 @@ import 'codemirror/addon/lint/lint.css'
 import ExecutionContext from './ExecutionContext'
 import Welcome from './Welcome'
 import ButtonPanel from './ButtonPanel'
+import Notification from './Notification'
 import snippets from '../utils/snippets'
+import copyUrlToClipboard from '../utils/clipboard'
 
 const Container = styled.div`
   display: flex;
@@ -58,7 +60,8 @@ class App extends Component {
     stack: [],
     running: false,
     disableButtons: false,
-    runningSpeed: 800
+    runningSpeed: 800,
+    showNotification: false
   }
   myInterpreter = getInterpreter('')
   chosenColors = []
@@ -151,6 +154,11 @@ class App extends Component {
     this.props.history.push(
       '/?' + queryString.stringify({ code: this.state.code})
     )
+    this.handleClipboard()
+  }
+  handleClipboard = () => {
+    copyUrlToClipboard()
+    this.setState({ showNotification: true })
   }
   changeRunSpeed =(speed) => {
     const speedMap = {
@@ -467,6 +475,17 @@ class App extends Component {
               this.handleClear(false)
             }}
           />
+          {this.state.showNotification
+            ? <Notification 
+                onDismiss={() => {
+                  this.setState({ showNotification: false })
+                }}
+                messageDuration={2000}
+                animationDuration='2s'
+                message='Link copied to clipboard' 
+              />
+            : null
+          }
         </LeftContainer>
         <RightContainer id='execution-context'>
         {stack.length === 0
