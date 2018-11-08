@@ -476,13 +476,13 @@ class App extends Component {
             }}
           />
           {this.state.showNotification
-            ? <Notification 
+            ? <Notification
                 onDismiss={() => {
                   this.setState({ showNotification: false })
                 }}
                 messageDuration={2000}
                 animationDuration='2s'
-                message='Link copied to clipboard' 
+                message='Link copied to clipboard'
               />
             : null
           }
