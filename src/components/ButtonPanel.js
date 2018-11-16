@@ -66,19 +66,30 @@ const SliderContainer = styled.div`
 `
 
 const Status = styled.div`
-  background: #dfe1e9;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  background: #dfe1e9;
   align-items: center;
-  font-weight: 300
-  font-size: 14px;
-  padding: 5px;
-  padding-left: 10px;
   margin-bottom: 5px;
+  padding: 3px;
 
-  > span {
-    font-weight: 500;
-    margin-left: 10px;
+  div {
+    font-weight: 300
+    font-size: 14px;
+    padding: 5px;
+    padding-left: 10px;
+
+    > span {
+      font-weight: 500;
+      margin-left: 10px;
+    }
+  }
+
+  a {
+    color: black;
+    background: transparent;
+    font-weight: bold;
+    margin-right: 8px;
   }
 
   @media (max-width: 700px) {
@@ -121,7 +132,10 @@ export default function ButtonPanel ({ onStep, step, run, restart, currentOperat
         </SliderContainer>
       </Top>
       <Status>
-        Current Operation: <span>{currentOperation}</span>
+        <div>Current Operation: <span>{currentOperation}</span></div>
+        <a href='https://tylermcginnis.com/courses/advanced-javascript/'>
+           Advanced JavaScript Course
+        </a>
       </Status>
     </ButtonPanelContainer>
   )
