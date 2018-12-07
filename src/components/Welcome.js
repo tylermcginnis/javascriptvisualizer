@@ -109,17 +109,6 @@ const Disclosure = styled.div`
   }
 `
 
-
-const Img = styled.img`
-  height: 60px;
-  width: 60px;
-
-  @media (max-width: 700px) {
-    height: 30px;
-    width: 30px;
-  }
-`
-
 export default function Welcome ({ selectCodeSnippet }) {
   return (
     <Container>

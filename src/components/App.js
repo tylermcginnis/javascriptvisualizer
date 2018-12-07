@@ -381,7 +381,7 @@ class App extends Component {
 
     if (stackLength === 0) {
       this.setState(getFirstStepState())
-      this.createdExecutionContexts.Global = true
+      this.createdExecutionContexts.global = true
     }
 
     if (createNewExecutionContext(this.previousHighlight.node, highlighted.node)) {
